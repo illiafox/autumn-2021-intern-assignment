@@ -53,7 +53,5 @@ func main() {
 		}()
 	}
 
-	exchange.Add("EUR", 92.39)
-
 	server.Start(db, conf.Host)
 }
