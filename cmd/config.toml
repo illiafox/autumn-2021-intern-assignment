@@ -1,0 +1,17 @@
+[MySQL]
+Login = "nowar"
+Pass = "GloryToUkraine"
+DbName = "avito"
+IP = "127.0.0.1"
+Port = "3306"
+Protocol = "tcp"
+
+[Host]
+Port = "8080"
+
+[Exchanger]
+Skip=true
+Every=120
+Endpoint="https://free.currconv.com/api/v7/convert"
+Key="b904b50e29877e8c38e0"
+Bases=["EUR","USD"]
