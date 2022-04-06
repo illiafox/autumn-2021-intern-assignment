@@ -1,13 +1,14 @@
 package exchange
 
 import (
-	"autumn-2021-intern-assignment/utils/config"
 	"encoding/json"
 	"fmt"
 	"io/ioutil"
 	"net/http"
 	"net/url"
 	"strings"
+
+	"autumn-2021-intern-assignment/utils/config"
 )
 
 func Update(conf config.Exchanger) error {
@@ -23,6 +24,7 @@ func Update(conf config.Exchanger) error {
 		for i := range conf.Bases {
 			conf.Bases[i] += "_RUB"
 		}
+
 		query.Set("q", strings.Join(conf.Bases, ","))
 	}
 
@@ -38,6 +40,7 @@ func Update(conf config.Exchanger) error {
 
 	var result successJSON
 	err = json.NewDecoder(resp.Body).Decode(&result)
+
 	if err != nil {
 		return fmt.Errorf("decoding json: %w", err)
 	}

@@ -1,16 +1,17 @@
 package main
 
 import (
-	"autumn-2021-intern-assignment/database"
-	"autumn-2021-intern-assignment/exchange"
-	"autumn-2021-intern-assignment/server"
-	"autumn-2021-intern-assignment/utils/config"
-	"autumn-2021-intern-assignment/utils/multiwriter"
 	"flag"
 	"fmt"
 	"log"
 	"os"
 	"time"
+
+	"autumn-2021-intern-assignment/database"
+	"autumn-2021-intern-assignment/exchange"
+	"autumn-2021-intern-assignment/server"
+	"autumn-2021-intern-assignment/utils/config"
+	"autumn-2021-intern-assignment/utils/multiwriter"
 )
 
 func main() {
@@ -43,9 +44,11 @@ func main() {
 		}
 
 		time.Sleep(time.Second * time.Duration(conf.Exchanger.Every))
+
 		go func() {
 			time.Sleep(time.Second * time.Duration(conf.Exchanger.Every))
 			err = exchange.Update(conf.Exchanger)
+
 			for err != nil {
 				log.Println(fmt.Errorf("updating currencies: %w", err))
 				err = exchange.Update(conf.Exchanger)

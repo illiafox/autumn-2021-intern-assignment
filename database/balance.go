@@ -16,8 +16,10 @@ func (sql DB) GetBalance(userID int64) (balance, balanceID int64, err error) {
 		if err != nil {
 			return -1, -1, fmt.Errorf("scan: %w", err)
 		}
+
 		return
 	}
+
 	return -1, -1, fmt.Errorf("balance with user id %d not found", userID)
 }
 
@@ -33,11 +35,13 @@ func (sql DB) ChangeBalance(userID, change int64, description string) error {
 	}
 
 	var balance, balanceID int64
+
 	if rows.Next() { // If balance is found
 		err = rows.Scan(&balance, &balanceID)
 		if err != nil {
 			return fmt.Errorf("get balance: scan: %w", err)
 		}
+
 		balance += change
 	} else { // Create new account
 		if change < 0 {
@@ -73,6 +77,7 @@ func (sql DB) ChangeBalance(userID, change int64, description string) error {
 trans:
 	_, err = t.Exec(`INSERT INTO transactions (balance_id,action,description,date) 
 	VALUES (?,?,?,?)`, balanceID, change, description, time.Now().Format(time.RFC3339))
+
 	if err != nil {
 		return fmt.Errorf(
 			"insert transaction (user_id %d, change %d): %w",

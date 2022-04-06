@@ -25,6 +25,7 @@ func (sql DB) Transfer(fromID, toID, amount int64, description string) error {
 	if err != nil {
 		return fmt.Errorf("get balance: query: %w", err)
 	}
+
 	if rows.Next() { // If balance is found
 		err = rows.Scan(&receiver, &receiverID)
 		if err != nil {
@@ -50,6 +51,7 @@ func (sql DB) Transfer(fromID, toID, amount int64, description string) error {
 
 	sender -= amount
 	_, err = tx.Exec("UPDATE balances SET balance = ? WHERE balance_id = ?", sender, senderID)
+
 	if err != nil {
 		return fmt.Errorf(
 			"update sender balance (user_id %d, change %d, new balance %d): %w",
@@ -60,6 +62,7 @@ func (sql DB) Transfer(fromID, toID, amount int64, description string) error {
 	if receiver >= 0 {
 		receiver += amount
 		_, err = tx.Exec("UPDATE balances SET balance = ? WHERE balance_id = ?", receiver, receiverID)
+
 		if err != nil {
 			return fmt.Errorf(
 				"update receiver balance (user_id %d, change %d, new balance %d): %w",

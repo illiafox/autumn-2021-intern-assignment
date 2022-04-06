@@ -1,8 +1,9 @@
 package methods
 
 import (
-	"autumn-2021-intern-assignment/database"
 	"encoding/json"
+
+	"autumn-2021-intern-assignment/database"
 	"github.com/valyala/fasthttp"
 )
 

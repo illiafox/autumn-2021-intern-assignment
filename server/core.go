@@ -1,10 +1,11 @@
 package server
 
 import (
+	"log"
+
 	"autumn-2021-intern-assignment/database"
 	"autumn-2021-intern-assignment/utils/config"
 	"github.com/valyala/fasthttp"
-	"log"
 )
 
 func Start(db *database.DB, host config.Host) {

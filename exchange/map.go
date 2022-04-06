@@ -15,6 +15,8 @@ func GetExchange(abbreviation string) (float64, bool) {
 	if !ok {
 		return 0, ok
 	}
+
 	c, ok := rate.(float64)
+
 	return c, ok
 }

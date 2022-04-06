@@ -70,6 +70,12 @@ Skip = true
 ```go
 exchange.Add("EUR", 92.39)
 ```
+## Тесты: в разработке
+**Запуск частично готовых в папке `tests`:**
+```shell
+ go test -fuzz=FuzzDatabase
+```
+
 ## Структуры таблиц
 ### balances: 
 ```mysql
@@ -87,7 +93,7 @@ action integer -- сумма изменения счета В КОПЕЙКАХ
 date timestamp -- дата транзакции
 description tinytext -- описание транзакции
 ```
-`balance_id` и `from_id` являются внешними ключами, поэтому для удаления баланса была добавлена функция (и API к ней): `Delete(balanceID, userID int64) error`
+`balance_id` и `from_id` являются внешними ключами, поэтому для удаления баланса была добавлена функция (и API к ней): `Delete(balanceID, userID1 int64) error`
 ```go
 db.Delete(0, 10) // Удалить баланс с user_id 10
 db.Delete(10, 0) // Удалить баланс с balance_id 10
@@ -320,7 +326,7 @@ SET FOREIGN_KEY_CHECKS=1;
 ```json lines
 {
   "ok": false, // Баланс с user_id 10 не найден
-  "err": "delete balance (user_id 10, balance_id 0): get balance (userID 10): balance with user id 10 not found"
+  "err": "delete balance (user_id 10, balance_id 0): get balance (userID1 10): balance with user id 10 not found"
 }
 ```
 

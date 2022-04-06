@@ -1,9 +1,10 @@
 package methods
 
 import (
+	"encoding/json"
+
 	"autumn-2021-intern-assignment/database"
 	"autumn-2021-intern-assignment/exchange"
-	"encoding/json"
 	"github.com/shopspring/decimal"
 	"github.com/valyala/fasthttp"
 	"strconv"

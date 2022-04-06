@@ -15,6 +15,7 @@ func jsonError(format string, a ...any) []byte {
 		Ok:  false,
 		Err: fmt.Errorf(format, a...).Error(),
 	})
+
 	return buf
 }
 
@@ -23,6 +24,7 @@ func jsonErrorString(err string) []byte {
 		Ok:  false,
 		Err: err,
 	})
+
 	return buf
 }
 

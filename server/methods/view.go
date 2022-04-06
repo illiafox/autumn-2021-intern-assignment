@@ -1,8 +1,9 @@
 package methods
 
 import (
-	"autumn-2021-intern-assignment/database"
 	"encoding/json"
+
+	"autumn-2021-intern-assignment/database"
 	"github.com/valyala/fasthttp"
 )
 
@@ -31,14 +32,17 @@ func View(db *database.DB, ctx *fasthttp.RequestCtx) {
 		ctx.Write(jsonError("wrong 'user' field value: %d", view.User))
 		return
 	}
+
 	if view.Limit < 1 {
 		ctx.Write(jsonError("wrong 'limit' field value: cant be lower than 1, got %d", view.User))
 		return
 	}
+
 	if view.Offset < 0 {
 		ctx.Write(jsonError("wrong 'offset' field value: cant be lower than 0 got %d", view.User))
 		return
 	}
+
 	if view.Sort == "" {
 		ctx.Write(jsonErrorString("'sort' field value cant be empty"))
 		return

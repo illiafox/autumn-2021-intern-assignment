@@ -27,7 +27,9 @@ func (sql DB) GetTransfers(userID, offset, limit int64, sort string) ([]Transact
 	if err != nil {
 		return nil, fmt.Errorf("get balance (id %d): %w", userID, err)
 	}
+
 	command, ok := sorts[sort]
+
 	if !ok {
 		return nil, fmt.Errorf("sort %s not supported", sort)
 	}
@@ -48,11 +50,13 @@ func (sql DB) GetTransfers(userID, offset, limit int64, sort string) ([]Transact
 		if err != nil {
 			return nil, fmt.Errorf("scan transaction: %w", err)
 		}
+
 		if fromBuf.Valid {
 			t.FromID = strconv.FormatInt(fromBuf.Int64, 10)
 		} else {
 			t.FromID = ""
 		}
+
 		trs = append(trs, t)
 	}
 
