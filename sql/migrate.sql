@@ -3,16 +3,16 @@ USE avito;
 
 CREATE TABLE IF NOT EXISTS balances
 (
-    balance_id integer primary key auto_increment,
-    user_id    integer not null,
+    balance_id bigint primary key auto_increment,
+    user_id    bigint not null,
     balance    integer not null default 0
 );
 
 CREATE TABLE IF NOT EXISTS transactions
 (
-    transaction_id integer primary key auto_increment,
-    balance_id     integer   not null,
-    from_id        integer,
+    transaction_id bigint primary key auto_increment,
+    balance_id     bigint   not null,
+    from_id        bigint,
     action         integer   not null,
     date           timestamp not null,
     description    tinytext,
@@ -20,6 +20,8 @@ CREATE TABLE IF NOT EXISTS transactions
         ON DELETE RESTRICT
         ON UPDATE CASCADE,
     FOREIGN KEY (from_id) REFERENCES balances (balance_id)
-        ON DELETE SET NULL
+        ON DELETE RESTRICT
         ON UPDATE CASCADE
 );
+
+
