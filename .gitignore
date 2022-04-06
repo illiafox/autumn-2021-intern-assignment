@@ -1,3 +1,4 @@
 .mysql-data
 /log.txt
 /cmd/server
+.idea
