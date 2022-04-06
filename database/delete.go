@@ -10,6 +10,14 @@ func (sql DB) Delete(balanceID, userID int64) error {
 		if err != nil {
 			return fmt.Errorf("get balance (userID %d): %w", userID, err)
 		}
+	} else {
+		r, err := sql.conn.Query("SELECT * FROM balances WHERE balance_id = ?", balanceID)
+		if err != nil {
+			return fmt.Errorf("check balance: query (balanceID %d): %w", balanceID, err)
+		}
+		if !r.NextResultSet() {
+			return fmt.Errorf("balance with ID %d not found", balanceID)
+		}
 	}
 
 	t, err := sql.conn.Begin()
