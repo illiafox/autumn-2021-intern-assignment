@@ -112,16 +112,16 @@ exchange.Add("EUR", 92.39)
 ## Структуры таблиц
 ### balances: 
 ```mysql
-balance_id integer primary key -- айди баланса, можно изменить
-user_id integer -- айди пользователя, можно изменить
+balance_id bigint primary key -- айди баланса, можно изменить
+user_id bigint -- айди пользователя, можно изменить
 balance integer  -- баланс В КОПЕЙКАХ
 ```
 При изменении айди баланса также обновляется в транзакциях 
 ### transactions: 
 ```mysql
-transaction_id integer primary key -- айди транзакции
-balance_id integer -- айди баланса получателя
-from_id integer -- айди баланса отправителя, не NULL только в переводах
+transaction_id bigint primary key -- айди транзакции
+balance_id bigint -- айди баланса получателя
+from_id bigint -- айди баланса отправителя, не NULL только в переводах
 action integer -- сумма изменения счета В КОПЕЙКАХ
 date timestamp -- дата транзакции
 description tinytext -- описание транзакции
