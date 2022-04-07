@@ -119,13 +119,13 @@ SET FOREIGN_KEY_CHECKS=1;
 * Успешный Status Code: `200 Accepted`
 #### 1. Стандартный запрос:
 
-```json
+```json5
 {
    "user_id": 10 // Айди пользователя
 }
 ```
 Ответ:
-```json
+```json5
 {
     "ok": true,
     "base": "RUB", // Валюта в которой представлен баланс
@@ -133,7 +133,7 @@ SET FOREIGN_KEY_CHECKS=1;
 }
 ```
 Возможная ошибка:
-```json
+```json5
 {
   "ok": false, // баланс с таким user_id не найден
   "err": "get balance: balance with user id 10 not found"
@@ -142,14 +142,14 @@ SET FOREIGN_KEY_CHECKS=1;
 
 #### 2. С конвертацией в другую алюту:
 
-```javascript
+```json5
 {
    "user_id": 10, // Айди пользователя
    "base": "EUR"
 }
 ```
 Ответ:
-```javascript
+```json5
 {
     "ok": true,
     "base": "EUR", // Валюта в которой представлен баланс
@@ -157,7 +157,7 @@ SET FOREIGN_KEY_CHECKS=1;
 }
 ```
 #### Возможная ошибка:
-```javascript
+```json5
 {
   "ok": false, // валюта не поддерживается
   "err": "base: abbreviation 'EUR' is not supported"
@@ -169,7 +169,7 @@ SET FOREIGN_KEY_CHECKS=1;
 * Успешный Status Code: `200 Accepted`
 #### 1. Стандартный запрос: Пополнение баланса
 
-```javascript
+```json5
 {
    "user_id": 10, // Айди пользователя
    "change": 3000, // Сумма изменения баланса, В КОПЕЙКАХ
@@ -180,11 +180,11 @@ SET FOREIGN_KEY_CHECKS=1;
 
 **Если баланс с юзером не существует и `change > 0`, создается новый**
 
-```javascript
+```json5
 { "ok": true }
 ```
 ### 2. Снятие денег с баланса
-```javascript
+```json5
 {
    "user_id": 10, // Айди пользователя
    "change": -3000, // Сумма снятия, В КОПЕЙКАХ
@@ -192,11 +192,11 @@ SET FOREIGN_KEY_CHECKS=1;
 }
 ```
 Ответ 
-```javascript
+```json5
 { "ok": true }
 ```
 #### Возможная ошибка:
-```javascript
+```json5
 {
   "ok": false, // если change < 0 и создается новый аккаунт
   "err": "change balance: change (-10000) is below zero, balance creating is forbidden"
@@ -209,7 +209,7 @@ SET FOREIGN_KEY_CHECKS=1;
 * Метод: `POST`
 * Успешный Status Code: `200 Accepted`
 #### 1. Стандартный запрос:
-```javascript
+```json5
 {
   "to_id": 20, // user_id получателя
   "from_id": 10, // user_id отправителя
@@ -220,7 +220,7 @@ SET FOREIGN_KEY_CHECKS=1;
 **Если баланса с юзером `to_id` не существует, создается новый**
 
 #### Возможные ошибки:
-```javascript
+```json5
 {
   "ok": false, // from_id не хватает средств для перевода
   "err": "transfer: insufficient funds: missing 92.00"
@@ -232,7 +232,7 @@ SET FOREIGN_KEY_CHECKS=1;
 * Метод: `GET`
 * Успешный Status Code: `200 Accepted`
 #### 1. Стандартный запрос:
-```javascript
+```json5
 {
   "user_id": 10, // Айди пользователя
   "sort": "DATE_DESC", // Тип сортировки
@@ -240,14 +240,14 @@ SET FOREIGN_KEY_CHECKS=1;
 }
 ```
 **Поддерживаемые типы сортировки:**
-```javascript
+```json5
 "DATE_DESC": От старых транзакций до новых
 "DATE_ASC": От новых до старых
 "SUM_DESC": От больших сделок до маленьких
 "SUM_ASC": От маленьких до больших
 ```
 Ответ (вывод сокращен):
-```javascript
+```json5
 {
   "ok": true,
   "transactions": [
@@ -271,14 +271,14 @@ SET FOREIGN_KEY_CHECKS=1;
 }
 ```
 Если транзакций не было, но баланс создан:
-```javascript
+```json5
 {
   "ok": true,
   "transactions": null
 }
 ```
 ### 2. Пагинация (сдвиг)
-```javascript
+```json5
 {
   "user_id": 10, // Айди пользователя
   "sort": "SUM_ASC", // Тип сортировки
@@ -289,7 +289,7 @@ SET FOREIGN_KEY_CHECKS=1;
 Ответ идентичен с прошлым запросом, но с выполнением сдвига на 2 транзакции
 
 #### Возможные ошибки
-```javascript
+```json5
 {
   "ok": false, // Баланс с user_id 10 не найден
   "err": "get transfers: get balance (id 10): balance with user id 10 not found"
@@ -300,37 +300,37 @@ SET FOREIGN_KEY_CHECKS=1;
 * Метод: `POST`
 * Успешный Status Code: `200 Accepted`
 #### Запросы:
-```javascript
+```json5
 {
     "user_id":10 // Удалить баланс с user_id 10
 }
 ```
-```javascript
+```json5
 {
     "balance_id":10 // Удалить баланс с id 10
 }
 ```
-```javascript
+```json5
 {
     "balance_id":10, // Удалить баланс с id 10
     "user_id":10 // Игнорируется
 }
 ```
 #### Ответ:
-```javascript
+```json5
 {
   "ok": true
 }
 ```
 #### Ошибки:
-```javascript
+```json5
 {
   "ok": false, // Баланс с user_id 10 не найден
   "err": "delete balance (user_id 10, balance_id 0): get balance (userID1 10): balance with user id 10 not found"
 }
 ```
 
-```javascript
+```json5
 {
   "ok": false, // Баланс с balance_id 10 не найден
   "err": "delete balance (user_id 0, balance_id 10): balance with ID 10 not found"
@@ -343,7 +343,7 @@ SET FOREIGN_KEY_CHECKS=1;
 * Метод: `POST`
 * Успешный Status Code: `200 Accepted`
 #### Запрос:
-```javascript
+```json5
 {
   "old_user_id": 10, // id прошлого владельца
   "new_user_id": 12 // id нового владельца
@@ -351,7 +351,7 @@ SET FOREIGN_KEY_CHECKS=1;
 ```
 #### Ошибки:
 Если баланс нового владельца уже существует
-```javascript
+```json5
 {
   "ok": false, // баланс с user_id 12 уже есть, для передачи можно удалить через /delete
   "err": "db.Switch(old 10 - new 12): balance with user_id 12 already exists"
@@ -359,13 +359,13 @@ SET FOREIGN_KEY_CHECKS=1;
 ```
 
 ### Общие ошибки
-* **decoding json**
+* **decoding json5**
 * **проверка синтаксиса**
 * * **проверка айди (валидные > 0)**
 * **ошибки бд**
 * * **предвиденные ошибки**
 * * **сбой работы**
-* **encoding json**
+* **encoding json5**
 
 ## TODO:
 1. Тесты SQL методов и самой API
