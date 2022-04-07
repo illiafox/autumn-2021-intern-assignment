@@ -78,7 +78,7 @@ func ChangeTest(db *database.DB, mock sqlmock.Sqlmock) any {
 			t.Error(err)
 		}
 
-		// Get Balance 1
+		// Get Balance 1 after change
 		mock.ExpectQuery("SELECT balance,balance_id FROM balances WHERE user_id =").
 			WithArgs(userID1).
 			WillReturnRows(sqlmock.NewRows([]string{"balance", "balance_id"}).AddRow(balance, 1))

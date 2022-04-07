@@ -10,7 +10,7 @@ Protocol = "tcp"
 Port = "8080"
 
 [Exchanger]
-Skip=true
+Skip=false
 Every=120
 Endpoint="https://free.currconv.com/api/v7/convert"
 Key="b904b50e29877e8c38e0"

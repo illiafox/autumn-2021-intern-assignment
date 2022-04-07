@@ -70,7 +70,7 @@ Skip = true
 ```go
 exchange.Add("EUR", 92.39)
 ```
-## Тесты: в разработке
+## ~~Тесты~~: в разработке
 **Запуск частично готовых в папке `tests`:**
 ```shell
  go test -fuzz=FuzzDatabase
@@ -142,14 +142,14 @@ SET FOREIGN_KEY_CHECKS=1;
 
 #### 2. С конвертацией в другую алюту:
 
-```json lines
+```javascript
 {
    "user_id": 10, // Айди пользователя
    "base": "EUR"
 }
 ```
 Ответ:
-```json lines
+```javascript
 {
     "ok": true,
     "base": "EUR", // Валюта в которой представлен баланс
@@ -157,7 +157,7 @@ SET FOREIGN_KEY_CHECKS=1;
 }
 ```
 #### Возможная ошибка:
-```json lines
+```javascript
 {
   "ok": false, // валюта не поддерживается
   "err": "base: abbreviation 'EUR' is not supported"
@@ -169,7 +169,7 @@ SET FOREIGN_KEY_CHECKS=1;
 * Успешный Status Code: `200 Accepted`
 #### 1. Стандартный запрос: Пополнение баланса
 
-```json lines
+```javascript
 {
    "user_id": 10, // Айди пользователя
    "change": 3000, // Сумма изменения баланса, В КОПЕЙКАХ
@@ -180,11 +180,11 @@ SET FOREIGN_KEY_CHECKS=1;
 
 **Если баланс с юзером не существует и `change > 0`, создается новый**
 
-```json lines
+```javascript
 { "ok": true }
 ```
 ### 2. Снятие денег с баланса
-```json lines
+```javascript
 {
    "user_id": 10, // Айди пользователя
    "change": -3000, // Сумма снятия, В КОПЕЙКАХ
@@ -192,11 +192,11 @@ SET FOREIGN_KEY_CHECKS=1;
 }
 ```
 Ответ 
-```json lines
+```javascript
 { "ok": true }
 ```
 #### Возможная ошибка:
-```json lines
+```javascript
 {
   "ok": false, // если change < 0 и создается новый аккаунт
   "err": "change balance: change (-10000) is below zero, balance creating is forbidden"
@@ -209,7 +209,7 @@ SET FOREIGN_KEY_CHECKS=1;
 * Метод: `POST`
 * Успешный Status Code: `200 Accepted`
 #### 1. Стандартный запрос:
-```json lines
+```javascript
 {
   "to_id": 20, // user_id получателя
   "from_id": 10, // user_id отправителя
@@ -220,7 +220,7 @@ SET FOREIGN_KEY_CHECKS=1;
 **Если баланса с юзером `to_id` не существует, создается новый**
 
 #### Возможные ошибки:
-```json lines
+```javascript
 {
   "ok": false, // from_id не хватает средств для перевода
   "err": "transfer: insufficient funds: missing 92.00"
@@ -232,7 +232,7 @@ SET FOREIGN_KEY_CHECKS=1;
 * Метод: `GET`
 * Успешный Status Code: `200 Accepted`
 #### 1. Стандартный запрос:
-```json lines
+```javascript
 {
   "user_id": 10, // Айди пользователя
   "sort": "DATE_DESC", // Тип сортировки
@@ -240,14 +240,14 @@ SET FOREIGN_KEY_CHECKS=1;
 }
 ```
 **Поддерживаемые типы сортировки:**
-```json lines
-"DATE_DESC": От старых до новых
+```javascript
+"DATE_DESC": От старых транзакций до новых
 "DATE_ASC": От новых до старых
-"SUM_DESC": От дорогих до дешевых
-"SUM_ASC": От дешевых до дорогих
+"SUM_DESC": От больших сделок до маленьких
+"SUM_ASC": От маленьких до больших
 ```
 Ответ (вывод сокращен):
-```json lines
+```javascript
 {
   "ok": true,
   "transactions": [
@@ -271,14 +271,14 @@ SET FOREIGN_KEY_CHECKS=1;
 }
 ```
 Если транзакций не было, но баланс создан:
-```json lines
+```javascript
 {
   "ok": true,
   "transactions": null
 }
 ```
 ### 2. Пагинация (сдвиг)
-```json lines
+```javascript
 {
   "user_id": 10, // Айди пользователя
   "sort": "SUM_ASC", // Тип сортировки
@@ -286,10 +286,10 @@ SET FOREIGN_KEY_CHECKS=1;
   "offset": 2 // сдвиг вывода
 }
 ```
-Ответ идентичен с прошлым запросом
+Ответ идентичен с прошлым запросом, но с выполнением сдвига на 2 транзакции
 
 #### Возможные ошибки
-```json lines
+```javascript
 {
   "ok": false, // Баланс с user_id 10 не найден
   "err": "get transfers: get balance (id 10): balance with user id 10 not found"
@@ -300,49 +300,72 @@ SET FOREIGN_KEY_CHECKS=1;
 * Метод: `POST`
 * Успешный Status Code: `200 Accepted`
 #### Запросы:
-```json lines
+```javascript
 {
     "user_id":10 // Удалить баланс с user_id 10
 }
 ```
-```json lines
+```javascript
 {
     "balance_id":10 // Удалить баланс с id 10
 }
 ```
-```json lines
+```javascript
 {
     "balance_id":10, // Удалить баланс с id 10
     "user_id":10 // Игнорируется
 }
 ```
 #### Ответ:
-```json lines
+```javascript
 {
   "ok": true
 }
 ```
 #### Ошибки:
-```json lines
+```javascript
 {
   "ok": false, // Баланс с user_id 10 не найден
   "err": "delete balance (user_id 10, balance_id 0): get balance (userID1 10): balance with user id 10 not found"
 }
 ```
 
-```json lines
+```javascript
 {
   "ok": false, // Баланс с balance_id 10 не найден
   "err": "delete balance (user_id 0, balance_id 10): balance with ID 10 not found"
+}
+```
+---
+
+### `/switch` - передача баланса другому юзеру
+Был добавлен из-за внешних ключей в таблице `transactions`
+* Метод: `POST`
+* Успешный Status Code: `200 Accepted`
+#### Запрос:
+```javascript
+{
+  "old_user_id": 10, // id прошлого владельца
+  "new_user_id": 12 // id нового владельца
+}
+```
+#### Ошибки:
+Если баланс нового владельца уже существует
+```javascript
+{
+  "ok": false, // баланс с user_id 12 уже есть, для передачи можно удалить через /delete
+  "err": "db.Switch(old 10 - new 12): balance with user_id 12 already exists"
 }
 ```
 
 ### Общие ошибки
 * **decoding json**
 * **проверка синтаксиса**
-* **проверка айди (валидные > 0)**
+* * **проверка айди (валидные > 0)**
+* **ошибки бд**
+* * **предвиденные ошибки**
+* * **сбой работы**
 * **encoding json**
 
 ## TODO:
-1. Смена айди пользователя, иными словами передача баланса
-2. Тесты SQL методов и самой API
+1. Тесты SQL методов и самой API
