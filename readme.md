@@ -23,6 +23,10 @@ SOURCE migrate-down.sql
 ```
 ### 3. Сборка и запуск
 ```shell
+git clone https://github.com/illiafox/autumn-2021-intern-assignment
+```
+
+```shell
 go build -o server
 ./server
 ```
