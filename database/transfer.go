@@ -72,7 +72,7 @@ func (sql DB) Transfer(fromID, toID, amount int64, description string) error {
 	}
 
 	_, err = tx.Exec(`INSERT INTO transactions (balance_id,from_id,action,description,date)
-	VALUES (?,?,?,?,?)`, receiverID, senderID, amount, description, time.Now().Format(time.RFC3339))
+	VALUES (?,?,?,?,?)`, receiverID, senderID, amount, description, time.Now().UTC())
 	if err != nil {
 		return fmt.Errorf("insert transaction: %w", err)
 	}

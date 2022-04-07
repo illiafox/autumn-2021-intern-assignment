@@ -1,14 +1,15 @@
-CREATE DATABASE IF NOT EXISTS avito;
-USE avito;
+BEGIN;
 
-CREATE TABLE IF NOT EXISTS balances
+CREATE DATABASE IF NOT EXISTS avito;
+
+CREATE TABLE IF NOT EXISTS avito.balances
 (
     balance_id bigint primary key auto_increment,
     user_id    bigint not null,
     balance    integer not null default 0
 );
 
-CREATE TABLE IF NOT EXISTS transactions
+CREATE TABLE IF NOT EXISTS avito.transactions
 (
     transaction_id bigint primary key auto_increment,
     balance_id     bigint   not null,
@@ -24,4 +25,4 @@ CREATE TABLE IF NOT EXISTS transactions
         ON UPDATE CASCADE
 );
 
-
+COMMIT;

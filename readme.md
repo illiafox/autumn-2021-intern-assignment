@@ -9,12 +9,18 @@
 
 ### 2. Подготовка `MySQL`
 
-Достаточно запустить файл `migrate.sql`
+Достаточно запустить файл `migrate-up.sql`
 ```sql
-SOURCE migrate.sql
+SOURCE migrate-up.sql
 ```
 **docker-compose** сделает это автоматически
 
+---
+
+#### УДАЛЕНИЕ ТАБЛИЦ
+```sql
+SOURCE migrate-down.sql
+```
 ### 3. Сборка и запуск
 ```shell
 go build -o server
@@ -48,8 +54,13 @@ environment:
 
 ## Курсы валют
 
-Для обновления валют был выбран сервис https://www.currencyconverterapi.com (рабочий ключ уже в конфиге)
+Для обновления валют был выбран сервис https://www.currencyconverterapi.com (рабочий ключ уже в конфиге) 
 
+**Включение**: `config.toml`
+```toml
+[Exchange]
+Skip = false # true - отключить
+```
 Бесплатная версия имеет ограничение **150 запросов в секунду**, настройки вынесены в отдельную структуру:
 ```toml
 [Exchanger]
@@ -58,15 +69,33 @@ Endpoint="https://free.currconv.com/api/v7/convert"
 Key="b904b50e29877e8c38e0"
 Bases=["EUR","USD"]
 ```
-Для загрузки всех курсов:
+Для загрузки всех курсов (130 запросов):
 ```toml
 Bases = [] # Или убрать поле
 ```
-Для пропуска загрузки:
+Для пропуска загрузки (`true` по умолчанию):
 ```toml
-Skip = true
+Skip = true # false - не пропускать
 ```
-Ручное добавление/обновление через `exchange.Add`
+Отключить интервальные обновления:
+```shell
+./server -skip
+```
+###Загрузка \ Сохранение в файл
+**При удачном запуске курс сохраняется в `currencies.json`**
+
+Пропустить вызов API и загрузиться с файла:
+```shell
+./server -load
+```
+Задать нестандартный путь `.json`:
+```shell
+./server -curr my_currencies.json
+```
+
+
+
+**Ручное добавление/обновление через `exchange.Add`**
 ```go
 exchange.Add("EUR", 92.39)
 ```

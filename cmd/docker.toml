@@ -10,8 +10,8 @@ Protocol = "tcp"
 Port = "8080"
 
 [Exchanger]
-Skip=false
+Skip=true
 Every=120
 Endpoint="https://free.currconv.com/api/v7/convert"
 Key="b904b50e29877e8c38e0"
-Bases=["EUR","USD"]
+Base=["EUR","USD"]

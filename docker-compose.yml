@@ -5,7 +5,7 @@ services:
     image: mysql:latest
     volumes:
       - "./.mysql-data/db:/var/lib/mysql"
-      - "./sql:/docker-entrypoint-initdb.d/"
+      - "./sql/migrate-up.sql:/docker-entrypoint-initdb.d/migrate-up.sql"
     restart: always
 
     networks:

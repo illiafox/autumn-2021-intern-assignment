@@ -1,53 +1,51 @@
 package exchange
 
 import (
-	"encoding/json"
 	"fmt"
-	"io/ioutil"
-	"net/http"
-	"net/url"
-	"strings"
+	"log"
+	"time"
 
 	"autumn-2021-intern-assignment/utils/config"
 )
 
-func Update(conf config.Exchanger) error {
-	u, err := url.Parse(conf.Endpoint)
-	if err != nil {
-		return fmt.Errorf("parsing endpoint: %w", err)
-	}
+func UpdateWithLoad(conf config.Exchanger, currPath string, skip, load bool) {
+	if !load {
+		log.Println("Currencies Update started")
+		err := Update(conf)
+		log.Println("Currencies Update done")
+		if err != nil {
+			log.Println(fmt.Errorf("updating currencies: %w", err))
 
-	query := u.Query()
-	query.Set("apiKey", conf.Key)
-
-	if len(conf.Bases) != 0 {
-		for i := range conf.Bases {
-			conf.Bases[i] += "_RUB"
+			err = Load(currPath)
+			if err != nil {
+				log.Println(fmt.Errorf("load currencies: %w", err))
+			} else {
+				log.Println("Currencies were loaded from file")
+			}
+		} else {
+			err = Store(currPath)
+			if err != nil {
+				log.Println(fmt.Errorf("store currencies: %w", err))
+			}
 		}
-
-		query.Set("q", strings.Join(conf.Bases, ","))
+		if !skip {
+			go func() {
+				for {
+					time.Sleep(time.Second * time.Duration(conf.Every))
+					err = Update(conf)
+					if err != nil {
+						log.Println(fmt.Errorf("updating currencies: %w", err))
+						err = Update(conf)
+					}
+				}
+			}()
+		}
+	} else {
+		err := Load(currPath)
+		if err != nil {
+			log.Println(fmt.Errorf("load currencies: %w", err))
+		} else {
+			log.Println("Currencies were loaded from file")
+		}
 	}
-
-	resp, err := http.Get(u.String() + "?" + query.Encode())
-	if err != nil {
-		return fmt.Errorf("send request: %w", err)
-	}
-
-	if resp.StatusCode != 200 {
-		data, _ := ioutil.ReadAll(resp.Body)
-		return fmt.Errorf("API error (status %d): %s", resp.StatusCode, string(data))
-	}
-
-	var result successJSON
-	err = json.NewDecoder(resp.Body).Decode(&result)
-
-	if err != nil {
-		return fmt.Errorf("decoding json: %w", err)
-	}
-
-	for _, c := range result.Results {
-		exchangeMap.Store(c.Fr, c.Val)
-	}
-
-	return nil
 }

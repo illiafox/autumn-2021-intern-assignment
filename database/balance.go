@@ -76,7 +76,7 @@ func (sql DB) ChangeBalance(userID, change int64, description string) error {
 	}
 trans:
 	_, err = t.Exec(`INSERT INTO transactions (balance_id,action,description,date) 
-	VALUES (?,?,?,?)`, balanceID, change, description, time.Now().Format(time.RFC3339))
+	VALUES (?,?,?,?)`, balanceID, change, description, time.Now().UTC())
 
 	if err != nil {
 		return fmt.Errorf(

@@ -18,7 +18,7 @@ type Exchanger struct {
 	Every    int
 	Endpoint string
 	Key      string
-	Bases    []string
+	Base     []string
 }
 
 type Config struct {
