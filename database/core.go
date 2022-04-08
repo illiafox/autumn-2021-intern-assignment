@@ -46,7 +46,3 @@ func New(conf config.Postgres) (*DB, error) {
 
 	return &DB{conn}, nil
 }
-
-func NewFromConnect(conn *sql.DB) *DB {
-	return &DB{conn}
-}
