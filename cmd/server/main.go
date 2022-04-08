@@ -1,15 +1,16 @@
 package main
 
 import (
+	"flag"
+	"fmt"
+	"log"
+	"os"
+
 	"autumn-2021-intern-assignment/database"
 	"autumn-2021-intern-assignment/exchange"
 	"autumn-2021-intern-assignment/server"
 	"autumn-2021-intern-assignment/utils/config"
 	"autumn-2021-intern-assignment/utils/multiwriter"
-	"flag"
-	"fmt"
-	"log"
-	"os"
 )
 
 func main() {

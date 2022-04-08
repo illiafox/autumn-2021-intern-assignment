@@ -3,7 +3,6 @@ package database
 import "fmt"
 
 func (sql DB) Switch(oldUserID, newUserID int64) error {
-
 	tx, err := sql.conn.Begin()
 	if err != nil {
 		return fmt.Errorf("begin transactions: %w", err)
