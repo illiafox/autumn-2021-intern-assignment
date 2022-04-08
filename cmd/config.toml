@@ -1,9 +1,9 @@
-[MySQL]
-Login = "nowar"
-Pass = "GloryToUkraine"
+[Postgres]
+User = "server"
+Pass = "M5F3wWtFxkQ8Ra4n"
 DbName = "avito"
 IP = "127.0.0.1"
-Port = "3306"
+Port = "5432"
 Protocol = "tcp"
 
 [Host]

@@ -8,21 +8,20 @@ import (
 	"time"
 
 	"autumn-2021-intern-assignment/utils/config"
-	// mysql driver
-	_ "github.com/go-sql-driver/mysql"
+	// postgre
+	_ "github.com/lib/pq"
 )
 
 type DB struct {
 	conn *sql.DB
 }
 
-func New(conf config.MySQL) (*DB, error) {
+func New(conf config.Postgres) (*DB, error) {
 	conn, err := sql.Open(
-		"mysql",
-		fmt.Sprintf("%s:%s@%s(%s:%s)/%s?charset=utf8mb4&parseTime=True&loc=Local",
-			conf.Login,
+		"postgres",
+		fmt.Sprintf("postgres://%s:%s@%v:%v/%v?sslmode=disable",
+			conf.User,
 			conf.Pass,
-			conf.Protocol,
 			conf.IP,
 			conf.Port,
 			conf.DbName,

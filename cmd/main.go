@@ -34,7 +34,7 @@ func main() {
 		log.Fatalln(fmt.Errorf("reading config file (%s): %w", *configPath, err))
 	}
 
-	db, err := database.New(conf.MySQL)
+	db, err := database.New(conf.Postgres)
 	if err != nil {
 		log.Fatalln(fmt.Errorf("connecting to database: %w", err))
 	}

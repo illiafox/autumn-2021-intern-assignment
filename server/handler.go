@@ -15,7 +15,6 @@ func Handler(db *database.DB) fasthttp.RequestHandler {
 	router.Handle("POST", "/change", w.Wrap(methods.Change))
 	router.Handle("POST", "/transfer", w.Wrap(methods.Transfer))
 	router.Handle("GET", "/view", w.Wrap(methods.View))
-	router.Handle("POST", "/delete", w.Wrap(methods.Delete))
 	router.Handle("POST", "/switch", w.Wrap(methods.Switch))
 
 	return router.Handler

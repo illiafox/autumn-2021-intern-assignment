@@ -10,7 +10,13 @@ func (sql DB) Transfer(fromID, toID, amount int64, description string) error {
 		return fmt.Errorf("amount can't be lower than zero, got %d", amount)
 	}
 
-	sender, senderID, err := sql.GetBalance(fromID)
+	tx, err := sql.conn.Begin()
+	if err != nil {
+		return fmt.Errorf("begin transactions: %w", err)
+	}
+	defer tx.Rollback()
+
+	sender, senderID, err := GetBalanceForUpdate(tx, fromID)
 	if err != nil {
 		return fmt.Errorf("get sender balance: %w", err)
 	}
@@ -21,7 +27,7 @@ func (sql DB) Transfer(fromID, toID, amount int64, description string) error {
 
 	var receiver, receiverID int64
 
-	rows, err := sql.conn.Query("SELECT balance,balance_id FROM balances WHERE user_id = ?", toID)
+	rows, err := tx.Query("SELECT balance,balance_id FROM balances WHERE user_id = $1 FOR UPDATE", toID)
 	if err != nil {
 		return fmt.Errorf("get balance: query: %w", err)
 	}
@@ -31,26 +37,25 @@ func (sql DB) Transfer(fromID, toID, amount int64, description string) error {
 		if err != nil {
 			return fmt.Errorf("get balance: scan: %w", err)
 		}
+
+		err = rows.Close()
+		if err != nil {
+			return fmt.Errorf("get balance: closing rows: %w", err)
+		}
 	} else { // Create new account
-		r, err := sql.conn.Exec("INSERT INTO balances (user_id,balance) VALUES (?,?)", toID, amount)
+		err = tx.QueryRow(
+			"INSERT INTO balances (user_id,balance) VALUES ($1,$2) RETURNING balance_id", toID, amount,
+		).Scan(&receiverID)
+
 		if err != nil {
 			return fmt.Errorf("new balance: insert balance (user_id %d): %w", toID, err)
 		}
 
-		receiverID, err = r.LastInsertId()
-		if err != nil {
-			return fmt.Errorf("new balance: get LastInsertId: %w", err)
-		}
 		receiver = -1
 	}
 
-	tx, err := sql.conn.Begin()
-	if err != nil {
-		return fmt.Errorf("begin transactions: %w", err)
-	}
-
 	sender -= amount
-	_, err = tx.Exec("UPDATE balances SET balance = ? WHERE balance_id = ?", sender, senderID)
+	_, err = tx.Exec("UPDATE balances SET balance = $1 WHERE balance_id = $2", sender, senderID)
 
 	if err != nil {
 		return fmt.Errorf(
@@ -61,7 +66,7 @@ func (sql DB) Transfer(fromID, toID, amount int64, description string) error {
 
 	if receiver >= 0 {
 		receiver += amount
-		_, err = tx.Exec("UPDATE balances SET balance = ? WHERE balance_id = ?", receiver, receiverID)
+		_, err = tx.Exec("UPDATE balances SET balance = $1 WHERE balance_id = $2", receiver, receiverID)
 
 		if err != nil {
 			return fmt.Errorf(
@@ -72,7 +77,7 @@ func (sql DB) Transfer(fromID, toID, amount int64, description string) error {
 	}
 
 	_, err = tx.Exec(`INSERT INTO transactions (balance_id,from_id,action,description,date)
-	VALUES (?,?,?,?,?)`, receiverID, senderID, amount, description, time.Now().UTC())
+	VALUES ($1,$2,$3,$4,$5)`, receiverID, senderID, amount, description, time.Now().UTC())
 	if err != nil {
 		return fmt.Errorf("insert transaction: %w", err)
 	}

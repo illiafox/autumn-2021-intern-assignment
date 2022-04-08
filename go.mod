@@ -7,6 +7,7 @@ require (
 	github.com/DATA-DOG/go-sqlmock v1.5.0
 	github.com/buaazp/fasthttprouter v0.1.1
 	github.com/go-sql-driver/mysql v1.5.0
+	github.com/lib/pq v1.10.4
 	github.com/shopspring/decimal v1.3.1
 	github.com/valyala/fasthttp v1.34.0
 )

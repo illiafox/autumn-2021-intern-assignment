@@ -7,10 +7,10 @@ import (
 )
 
 var sorts = map[string]string{
-	"DATE_DESC": "SELECT * FROM transactions WHERE balance_id = ? ORDER BY date DESC LIMIT ? OFFSET ?",
-	"DATE_ASC":  "SELECT * FROM transactions WHERE balance_id = ? ORDER BY date ASC LIMIT ? OFFSET ?",
-	"SUM_DESC":  "SELECT * FROM transactions WHERE balance_id = ? ORDER BY action DESC LIMIT ? OFFSET ?",
-	"SUM_ASC":   "SELECT * FROM transactions WHERE balance_id = ? ORDER BY action ASC LIMIT ? OFFSET ?",
+	"DATE_DESC": "SELECT * FROM transactions WHERE balance_id = $1 ORDER BY date DESC LIMIT $2 OFFSET $3",
+	"DATE_ASC":  "SELECT * FROM transactions WHERE balance_id = $1 ORDER BY date ASC LIMIT $2 OFFSET $3",
+	"SUM_DESC":  "SELECT * FROM transactions WHERE balance_id = $1 ORDER BY action DESC LIMIT $2 OFFSET $3",
+	"SUM_ASC":   "SELECT * FROM transactions WHERE balance_id = $1 ORDER BY action ASC LIMIT $2 OFFSET $3",
 }
 
 type Transaction struct {

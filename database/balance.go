@@ -1,12 +1,14 @@
 package database
 
 import (
+	"database/sql"
 	"fmt"
 	"time"
 )
 
 func (sql DB) GetBalance(userID int64) (balance, balanceID int64, err error) {
-	rows, err := sql.conn.Query("SELECT balance,balance_id FROM balances WHERE user_id = ?", userID)
+	rows, err := sql.conn.Query("SELECT balance,balance_id FROM balances WHERE user_id = $1", userID)
+
 	if err != nil {
 		return -1, -1, fmt.Errorf("query: %w", err)
 	}
@@ -17,6 +19,11 @@ func (sql DB) GetBalance(userID int64) (balance, balanceID int64, err error) {
 			return -1, -1, fmt.Errorf("scan: %w", err)
 		}
 
+		err = rows.Close()
+		if err != nil {
+			return -1, -1, fmt.Errorf("get balance: closing rows: %w", err)
+		}
+
 		return
 	}
 
@@ -24,14 +31,16 @@ func (sql DB) GetBalance(userID int64) (balance, balanceID int64, err error) {
 }
 
 func (sql DB) ChangeBalance(userID, change int64, description string) error {
-	rows, err := sql.conn.Query("SELECT balance,balance_id FROM balances WHERE user_id = ?", userID)
-	if err != nil {
-		return fmt.Errorf("get balance: query: %w", err)
-	}
 
 	t, err := sql.conn.Begin()
 	if err != nil {
 		return fmt.Errorf("begin transaction: %w", err)
+	}
+	defer t.Rollback()
+
+	rows, err := t.Query("SELECT balance,balance_id FROM balances WHERE user_id = $1 FOR UPDATE", userID)
+	if err != nil {
+		return fmt.Errorf("get balance: query: %w", err)
 	}
 
 	var balance, balanceID int64
@@ -42,23 +51,26 @@ func (sql DB) ChangeBalance(userID, change int64, description string) error {
 			return fmt.Errorf("get balance: scan: %w", err)
 		}
 
+		err = rows.Close()
+		if err != nil {
+			return fmt.Errorf("get balance: closing rows: %w", err)
+		}
+
 		balance += change
 	} else { // Create new account
 		if change < 0 {
 			return fmt.Errorf("change (%d) is below zero, balance creating is forbidden", change)
 		}
 
-		r, err := sql.conn.Exec("INSERT INTO balances (user_id,balance) VALUES (?,?)", userID, change)
+		err = t.QueryRow(
+			"INSERT INTO balances (user_id,balance) VALUES ($1,$2) RETURNING balance_id", userID, change,
+		).Scan(&balanceID)
+
 		if err != nil {
 			return fmt.Errorf(
 				"new balance: insert balance (user_id %d, change %d): %w",
 				userID, change, err,
 			)
-		}
-
-		balanceID, err = r.LastInsertId()
-		if err != nil {
-			return fmt.Errorf("new balance: get LastInsertId: %w", err)
 		}
 		goto trans
 	}
@@ -67,7 +79,7 @@ func (sql DB) ChangeBalance(userID, change int64, description string) error {
 		return fmt.Errorf("insufficient funds: missing %.2f", float64(-balance)/100)
 	}
 
-	_, err = t.Exec("UPDATE balances SET balance = ? WHERE balance_id = ?", balance, balanceID)
+	_, err = t.Exec("UPDATE balances SET balance = $1 WHERE balance_id = $2", balance, balanceID)
 	if err != nil {
 		return fmt.Errorf(
 			"update balance (id %d, change %d, new balance %d): %w",
@@ -76,7 +88,7 @@ func (sql DB) ChangeBalance(userID, change int64, description string) error {
 	}
 trans:
 	_, err = t.Exec(`INSERT INTO transactions (balance_id,action,description,date) 
-	VALUES (?,?,?,?)`, balanceID, change, description, time.Now().UTC())
+	VALUES ($1,$2,$3,$4)`, balanceID, change, description, time.Now().UTC())
 
 	if err != nil {
 		return fmt.Errorf(
@@ -91,4 +103,28 @@ trans:
 	}
 
 	return nil
+}
+
+func GetBalanceForUpdate(db *sql.Tx, userID int64) (balance, balanceID int64, err error) {
+	rows, err := db.Query("SELECT balance,balance_id FROM balances WHERE user_id = $1", userID)
+
+	if err != nil {
+		return -1, -1, fmt.Errorf("query: %w", err)
+	}
+
+	if rows.Next() { // If balance is found
+		err = rows.Scan(&balance, &balanceID)
+		if err != nil {
+			return -1, -1, fmt.Errorf("scan: %w", err)
+		}
+
+		err = rows.Close()
+		if err != nil {
+			return -1, -1, fmt.Errorf("get balance: closing rows: %w", err)
+		}
+
+		return
+	}
+
+	return -1, -1, fmt.Errorf("balance with user id %d not found", userID)
 }

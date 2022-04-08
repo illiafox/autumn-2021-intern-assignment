@@ -1,7 +1,7 @@
 package config
 
-type MySQL struct {
-	Login    string
+type Postgres struct {
+	User     string
 	Pass     string
 	DbName   string
 	IP       string
@@ -22,7 +22,7 @@ type Exchanger struct {
 }
 
 type Config struct {
-	MySQL     MySQL
+	Postgres  Postgres
 	Host      Host
 	Exchanger Exchanger
 }

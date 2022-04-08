@@ -3,11 +3,11 @@
 ## Запуск
 
 ### 1. Требования
-* **MySQL:** `8.0.28` и выше
+* **PostgreSQL:** `14.2` и выше
 * **Go:** `1.18`
 
 
-### 2. Подготовка `MySQL`
+### 2. Подготовка `PostgreSQL`
 
 Достаточно запустить файл `migrate-up.sql`
 ```sql
@@ -112,36 +112,19 @@ exchange.Add("EUR", 92.39)
 ## Структуры таблиц
 ### balances: 
 ```mysql
-balance_id bigint primary key -- айди баланса, можно изменить
+balance_id bigserial primary key -- айди баланса, можно изменить
 user_id bigint -- айди пользователя, можно изменить
 balance integer  -- баланс В КОПЕЙКАХ
 ```
-При изменении айди баланса также обновляется в транзакциях 
 ### transactions: 
-```mysql
-transaction_id bigint primary key -- айди транзакции
+```postgresql
+transaction_id bigserial primary key -- айди транзакции
 balance_id bigint -- айди баланса получателя
 from_id bigint -- айди баланса отправителя, не NULL только в переводах
 action integer -- сумма изменения счета В КОПЕЙКАХ
 date timestamp -- дата транзакции
-description tinytext -- описание транзакции
+description text -- описание транзакции
 ```
-`balance_id` и `from_id` являются внешними ключами, поэтому для удаления баланса была добавлена функция (и API к ней): `Delete(balanceID, userID1 int64) error`
-```go
-db.Delete(0, 10) // Удалить баланс с user_id 10
-db.Delete(10, 0) // Удалить баланс с balance_id 10
-db.Delete(10,10) // Удалить баланс с balance_id 10
-```
-Или использовать SQL запрос:
-```sql
-SET FOREIGN_KEY_CHECKS=0;
-
-DELETE FROM balances WHERE balance_id = 10 -- через balance_id
-DELETE FROM balances WHERE user_id = 10 -- через user_id
-
-SET FOREIGN_KEY_CHECKS=1;
-```
-
 ---
 ## Методы API
 **Порт по умолчанию `8080`, Endpoint `http://localhost:8080/`**
@@ -328,48 +311,7 @@ SET FOREIGN_KEY_CHECKS=1;
   "err": "get transfers: get balance (id 10): balance with user id 10 not found"
 }
 ```
-### `/delete` - удаление баланса
-Был добавлен из-за внешних ключей в таблице `transactions`
-* Метод: `POST`
-* Успешный Status Code: `200 Accepted`
-#### Запросы:
-```json5
-{
-    "user_id":10 // Удалить баланс с user_id 10
-}
-```
-```json5
-{
-    "balance_id":10 // Удалить баланс с id 10
-}
-```
-```json5
-{
-    "balance_id":10, // Удалить баланс с id 10
-    "user_id":10 // Игнорируется
-}
-```
-#### Ответ:
-```json5
-{
-  "ok": true
-}
-```
-#### Ошибки:
-```json5
-{
-  "ok": false, // Баланс с user_id 10 не найден
-  "err": "delete balance (user_id 10, balance_id 0): get balance (userID1 10): balance with user id 10 not found"
-}
-```
 
-```json5
-{
-  "ok": false, // Баланс с balance_id 10 не найден
-  "err": "delete balance (user_id 0, balance_id 10): balance with ID 10 not found"
-}
-```
----
 
 ### `/switch` - передача баланса другому пользователю
 * Метод: `POST`

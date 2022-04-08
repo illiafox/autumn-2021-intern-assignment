@@ -1,26 +1,25 @@
 version: '3.3'
 
 services:
-  mysql:
-    image: mysql:latest
+  postgres:
+    image: 'postgres:latest'
     volumes:
-      - "./.mysql-data/db:/var/lib/mysql"
+      - data:/var/lib/postgresql/data
       - "./sql/migrate-up.sql:/docker-entrypoint-initdb.d/migrate-up.sql"
     restart: always
 
     networks:
       - hosts
     environment:
-      MYSQL_ROOT_PASSWORD: rootpw
-      MYSQL_DATABASE: avito
-      MYSQL_USER: server
-      MYSQL_PASSWORD: M5F3wWtFxkQ8Ra4n
+      POSTGRES_DB: avito
+      POSTGRES_USER: server
+      POSTGRES_PASSWORD: M5F3wWtFxkQ8Ra4n
   server:
     build: .
     ports:
       - "8080:8080"
     depends_on:
-      - mysql
+      - postgres
     environment:
       ARGS: -config docker.toml
     networks:
@@ -28,3 +27,5 @@ services:
 networks:
   hosts:
     driver: "bridge"
+volumes:
+  data:

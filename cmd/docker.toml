@@ -1,9 +1,9 @@
-[MySQL]
-Login = "server"
+[Postgres]
+User = "server"
 Pass = "M5F3wWtFxkQ8Ra4n"
 DbName = "avito"
-IP = "mysql"
-Port = "3306"
+IP = "postgres"
+Port = "5432"
 Protocol = "tcp"
 
 [Host]
