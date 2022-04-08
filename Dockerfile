@@ -6,10 +6,10 @@ RUN mkdir /server
 
 COPY . /server
 
-WORKDIR /server/cmd
+WORKDIR /server/cmd/server
 
 RUN go build -o bin .
 
 EXPOSE 8080
 
-CMD /server/cmd/bin $ARGS
+CMD /server/cmd/server/bin $ARGS

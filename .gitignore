@@ -1,5 +1,5 @@
 .mysql-data
-/cmd/server
+/cmd/server/log.txt
 .idea
 /tests/log.txt
 /tests/testdata/
