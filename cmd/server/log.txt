@@ -1,2 +1,1 @@
-2022/04/08 10:42:31 Server started at 127.0.0.1:8080
-2022/04/08 10:42:31 ListenAndServe:  listen tcp4 :8080: bind: address already in use
+2022/04/08 10:57:16 Server started at 127.0.0.1:8080
