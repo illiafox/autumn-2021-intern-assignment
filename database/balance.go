@@ -12,18 +12,13 @@ func (sql DB) GetBalance(userID int64) (balance, balanceID int64, err error) {
 	if err != nil {
 		return -1, -1, fmt.Errorf("query: %w", err)
 	}
+	defer rows.Close()
 
 	if rows.Next() { // If balance is found
 		err = rows.Scan(&balance, &balanceID)
 		if err != nil {
 			return -1, -1, fmt.Errorf("scan: %w", err)
 		}
-
-		err = rows.Close()
-		if err != nil {
-			return -1, -1, fmt.Errorf("get balance: closing rows: %w", err)
-		}
-
 		return
 	}
 
@@ -31,7 +26,6 @@ func (sql DB) GetBalance(userID int64) (balance, balanceID int64, err error) {
 }
 
 func (sql DB) ChangeBalance(userID, change int64, description string) error {
-
 	t, err := sql.conn.Begin()
 	if err != nil {
 		return fmt.Errorf("begin transaction: %w", err)
@@ -42,18 +36,13 @@ func (sql DB) ChangeBalance(userID, change int64, description string) error {
 	if err != nil {
 		return fmt.Errorf("get balance: query: %w", err)
 	}
-
+	defer rows.Close()
 	var balance, balanceID int64
 
 	if rows.Next() { // If balance is found
 		err = rows.Scan(&balance, &balanceID)
 		if err != nil {
 			return fmt.Errorf("get balance: scan: %w", err)
-		}
-
-		err = rows.Close()
-		if err != nil {
-			return fmt.Errorf("get balance: closing rows: %w", err)
 		}
 
 		balance += change
@@ -111,16 +100,12 @@ func GetBalanceForUpdate(db *sql.Tx, userID int64) (balance, balanceID int64, er
 	if err != nil {
 		return -1, -1, fmt.Errorf("query: %w", err)
 	}
+	defer rows.Close()
 
 	if rows.Next() { // If balance is found
 		err = rows.Scan(&balance, &balanceID)
 		if err != nil {
 			return -1, -1, fmt.Errorf("scan: %w", err)
-		}
-
-		err = rows.Close()
-		if err != nil {
-			return -1, -1, fmt.Errorf("get balance: closing rows: %w", err)
 		}
 
 		return

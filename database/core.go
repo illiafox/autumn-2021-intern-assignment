@@ -27,6 +27,7 @@ func New(conf config.Postgres) (*DB, error) {
 			conf.DbName,
 		),
 	)
+
 	for err != nil {
 		return nil, fmt.Errorf("connecting to mysql: %w", err)
 	}

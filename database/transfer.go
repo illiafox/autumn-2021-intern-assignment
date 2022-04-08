@@ -31,6 +31,7 @@ func (sql DB) Transfer(fromID, toID, amount int64, description string) error {
 	if err != nil {
 		return fmt.Errorf("get balance: query: %w", err)
 	}
+	defer rows.Close()
 
 	if rows.Next() { // If balance is found
 		err = rows.Scan(&receiver, &receiverID)
@@ -38,10 +39,6 @@ func (sql DB) Transfer(fromID, toID, amount int64, description string) error {
 			return fmt.Errorf("get balance: scan: %w", err)
 		}
 
-		err = rows.Close()
-		if err != nil {
-			return fmt.Errorf("get balance: closing rows: %w", err)
-		}
 	} else { // Create new account
 		err = tx.QueryRow(
 			"INSERT INTO balances (user_id,balance) VALUES ($1,$2) RETURNING balance_id", toID, amount,

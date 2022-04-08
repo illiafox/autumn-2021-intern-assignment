@@ -38,6 +38,7 @@ func (sql DB) GetTransfers(userID, offset, limit int64, sort string) ([]Transact
 	if err != nil {
 		return nil, fmt.Errorf("select query: %w", err)
 	}
+	defer rows.Close()
 
 	var (
 		trs     []Transaction
