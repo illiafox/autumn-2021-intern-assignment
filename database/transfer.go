@@ -16,7 +16,7 @@ func (sql DB) Transfer(fromID, toID, amount int64, description string) error {
 	}
 	defer tx.Rollback()
 
-	sender, senderID, err := GetBalanceForUpdate(tx, fromID)
+	sender, senderID, err := getBalanceForUpdate(tx, fromID)
 	if err != nil {
 		return fmt.Errorf("get sender balance: %w", err)
 	}

@@ -9,7 +9,7 @@ func (sql DB) Switch(oldUserID, newUserID int64) error {
 	}
 	defer tx.Rollback()
 
-	_, balanceID, err := GetBalanceForUpdate(tx, oldUserID)
+	_, balanceID, err := getBalanceForUpdate(tx, oldUserID)
 	if err != nil {
 		return fmt.Errorf("GetBalance(old %d): %w", oldUserID, err)
 	}

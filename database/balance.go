@@ -94,7 +94,7 @@ trans:
 	return nil
 }
 
-func GetBalanceForUpdate(db *sql.Tx, userID int64) (balance, balanceID int64, err error) {
+func getBalanceForUpdate(db *sql.Tx, userID int64) (balance, balanceID int64, err error) {
 	rows, err := db.Query("SELECT balance,balance_id FROM balances WHERE user_id = $1", userID)
 
 	if err != nil {
