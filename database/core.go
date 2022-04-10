@@ -1,13 +1,10 @@
 package database
 
 import (
+	"autumn-2021-intern-assignment/utils/config"
 	"database/sql"
 	"fmt"
-	"log"
 	"os"
-	"time"
-
-	"autumn-2021-intern-assignment/utils/config"
 	// postgre
 	_ "github.com/lib/pq"
 )
@@ -28,17 +25,12 @@ func New(conf config.Postgres) (*DB, error) {
 		),
 	)
 
-	for err != nil {
+	if err != nil {
 		return nil, fmt.Errorf("connecting to mysql: %w", err)
 	}
 
-	err = conn.Ping()
-
-	for i := 0; err != nil && i < 5; i++ {
-		log.Println(fmt.Errorf("ping: %w -> retrying", err))
-		time.Sleep(time.Second)
-
-		err = conn.Ping()
+	if conn.Ping() != nil {
+		return nil, fmt.Errorf("ping: %w", err)
 	}
 
 	if err != nil {
