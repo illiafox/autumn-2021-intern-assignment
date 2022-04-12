@@ -36,6 +36,5 @@ func New(conf config.Postgres) (*DB, error) {
 	if err != nil {
 		os.Exit(1)
 	}
-
 	return &DB{conn}, nil
 }

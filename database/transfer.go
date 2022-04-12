@@ -40,6 +40,12 @@ func (sql DB) Transfer(fromID, toID, amount int64, description string) error {
 		}
 
 	} else { // Create new account
+
+		err = rows.Err()
+		if err != nil {
+			return fmt.Errorf("rows: %w", err)
+		}
+
 		err = tx.QueryRow(
 			"INSERT INTO balances (user_id,balance) VALUES ($1,$2) RETURNING balance_id", toID, amount,
 		).Scan(&receiverID)

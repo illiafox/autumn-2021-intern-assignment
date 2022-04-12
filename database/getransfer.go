@@ -61,5 +61,10 @@ func (sql DB) GetTransfers(userID, offset, limit int64, sort string) ([]Transact
 		trs = append(trs, t)
 	}
 
+	err = rows.Err()
+	if err != nil {
+		return nil, fmt.Errorf("rows: %w", err)
+	}
+
 	return trs, nil
 }

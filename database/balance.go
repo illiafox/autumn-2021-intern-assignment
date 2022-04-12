@@ -22,6 +22,11 @@ func (sql DB) GetBalance(userID int64) (balance, balanceID int64, err error) {
 		return
 	}
 
+	err = rows.Err()
+	if err != nil {
+		return -1, -1, fmt.Errorf("rows: %w", err)
+	}
+
 	return -1, -1, fmt.Errorf("balance with user id %d not found", userID)
 }
 
@@ -47,6 +52,11 @@ func (sql DB) ChangeBalance(userID, change int64, description string) error {
 
 		balance += change
 	} else { // Create new account
+		err = rows.Err()
+		if err != nil {
+			return fmt.Errorf("rows: %w", err)
+		}
+
 		if change < 0 {
 			return fmt.Errorf("change (%d) is below zero, balance creating is forbidden", change)
 		}
@@ -109,6 +119,11 @@ func getBalanceForUpdate(db *sql.Tx, userID int64) (balance, balanceID int64, er
 		}
 
 		return
+	}
+
+	err = rows.Err()
+	if err != nil {
+		return -1, -1, fmt.Errorf("rows: %w", err)
 	}
 
 	return -1, -1, fmt.Errorf("balance with user id %d not found", userID)
