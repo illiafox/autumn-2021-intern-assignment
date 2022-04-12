@@ -4,8 +4,7 @@ import (
 	"autumn-2021-intern-assignment/utils/config"
 	"database/sql"
 	"fmt"
-	"os"
-	// postgre
+	// postgres
 	_ "github.com/lib/pq"
 )
 
@@ -26,15 +25,12 @@ func New(conf config.Postgres) (*DB, error) {
 	)
 
 	if err != nil {
-		return nil, fmt.Errorf("connecting to mysql: %w", err)
+		return nil, fmt.Errorf("opening connection: %w", err)
 	}
-
-	if conn.Ping() != nil {
+	err = conn.Ping()
+	if err != nil {
 		return nil, fmt.Errorf("ping: %w", err)
 	}
 
-	if err != nil {
-		os.Exit(1)
-	}
 	return &DB{conn}, nil
 }
