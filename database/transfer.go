@@ -1,6 +1,7 @@
 package database
 
 import (
+	"context"
 	"fmt"
 	"time"
 )
@@ -10,11 +11,13 @@ func (sql DB) Transfer(fromID, toID, amount int64, description string) error {
 		return fmt.Errorf("amount can't be lower than zero, got %d", amount)
 	}
 
-	tx, err := sql.conn.Begin()
+	ctx := context.Background()
+
+	tx, err := sql.conn.Begin(ctx)
 	if err != nil {
 		return fmt.Errorf("begin transactions: %w", err)
 	}
-	defer tx.Rollback()
+	defer tx.Rollback(ctx)
 
 	sender, senderID, err := getBalanceForUpdate(tx, fromID)
 	if err != nil {
@@ -27,7 +30,7 @@ func (sql DB) Transfer(fromID, toID, amount int64, description string) error {
 
 	var receiver, receiverID int64
 
-	rows, err := tx.Query("SELECT balance,balance_id FROM balances WHERE user_id = $1 FOR UPDATE", toID)
+	rows, err := tx.Query(ctx, "SELECT balance,balance_id FROM balances WHERE user_id = $1 FOR UPDATE", toID)
 	if err != nil {
 		return fmt.Errorf("get balance: query: %w", err)
 	}
@@ -47,6 +50,7 @@ func (sql DB) Transfer(fromID, toID, amount int64, description string) error {
 		}
 
 		err = tx.QueryRow(
+			ctx,
 			"INSERT INTO balances (user_id,balance) VALUES ($1,$2) RETURNING balance_id", toID, amount,
 		).Scan(&receiverID)
 
@@ -58,7 +62,7 @@ func (sql DB) Transfer(fromID, toID, amount int64, description string) error {
 	}
 
 	sender -= amount
-	_, err = tx.Exec("UPDATE balances SET balance = $1 WHERE balance_id = $2", sender, senderID)
+	_, err = tx.Exec(ctx, "UPDATE balances SET balance = $1 WHERE balance_id = $2", sender, senderID)
 
 	if err != nil {
 		return fmt.Errorf(
@@ -69,7 +73,7 @@ func (sql DB) Transfer(fromID, toID, amount int64, description string) error {
 
 	if receiver >= 0 {
 		receiver += amount
-		_, err = tx.Exec("UPDATE balances SET balance = $1 WHERE balance_id = $2", receiver, receiverID)
+		_, err = tx.Exec(ctx, "UPDATE balances SET balance = $1 WHERE balance_id = $2", receiver, receiverID)
 
 		if err != nil {
 			return fmt.Errorf(
@@ -79,13 +83,13 @@ func (sql DB) Transfer(fromID, toID, amount int64, description string) error {
 		}
 	}
 
-	_, err = tx.Exec(`INSERT INTO transactions (balance_id,from_id,action,description,date)
+	_, err = tx.Exec(ctx, `INSERT INTO transactions (balance_id,from_id,action,description,date)
 	VALUES ($1,$2,$3,$4,$5)`, receiverID, senderID, amount, description, time.Now().UTC())
 	if err != nil {
 		return fmt.Errorf("insert transaction: %w", err)
 	}
 
-	err = tx.Commit()
+	err = tx.Commit(ctx)
 	if err != nil {
 		return fmt.Errorf("commit transaction: %w", err)
 	}

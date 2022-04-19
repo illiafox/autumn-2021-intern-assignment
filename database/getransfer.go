@@ -1,6 +1,7 @@
 package database
 
 import (
+	"context"
 	sqlpack "database/sql"
 	"fmt"
 	"strconv"
@@ -23,7 +24,9 @@ type Transaction struct {
 }
 
 func (sql DB) GetTransfers(userID, offset, limit int64, sort string) ([]Transaction, error) {
-	_, balanceID, err := sql.GetBalance(userID)
+	ctx := context.Background()
+
+	_, balanceID, err := sql.GetBalance(ctx, userID)
 	if err != nil {
 		return nil, fmt.Errorf("get balance (id %d): %w", userID, err)
 	}
@@ -34,7 +37,7 @@ func (sql DB) GetTransfers(userID, offset, limit int64, sort string) ([]Transact
 		return nil, fmt.Errorf("sort %s not supported", sort)
 	}
 
-	rows, err := sql.conn.Query(command, balanceID, limit, offset)
+	rows, err := sql.conn.Query(ctx, command, balanceID, limit, offset)
 	if err != nil {
 		return nil, fmt.Errorf("select query: %w", err)
 	}

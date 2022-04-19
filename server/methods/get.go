@@ -1,10 +1,10 @@
 package methods
 
 import (
-	"encoding/json"
-
 	"autumn-2021-intern-assignment/database"
 	"autumn-2021-intern-assignment/exchange"
+	"context"
+	"encoding/json"
 	"github.com/shopspring/decimal"
 	"github.com/valyala/fasthttp"
 	"strconv"
@@ -30,7 +30,7 @@ func Get(db *database.DB, ctx *fasthttp.RequestCtx) {
 		return
 	}
 
-	balance, _, err := db.GetBalance(get.User)
+	balance, _, err := db.GetBalance(context.Background(), get.User)
 	if err != nil {
 		ctx.Write(jsonError("get balance: %w", err))
 		return

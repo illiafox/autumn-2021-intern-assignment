@@ -1,13 +1,15 @@
 package database
 
 import (
-	"database/sql"
+	"context"
 	"fmt"
+	"github.com/jackc/pgx/v4"
 	"time"
 )
 
-func (sql DB) GetBalance(userID int64) (balance, balanceID int64, err error) {
-	rows, err := sql.conn.Query("SELECT balance,balance_id FROM balances WHERE user_id = $1", userID)
+func (sql DB) GetBalance(ctx context.Context, userID int64) (balance, balanceID int64, err error) {
+
+	rows, err := sql.conn.Query(ctx, "SELECT balance,balance_id FROM balances WHERE user_id = $1", userID)
 
 	if err != nil {
 		return -1, -1, fmt.Errorf("query: %w", err)
@@ -19,6 +21,7 @@ func (sql DB) GetBalance(userID int64) (balance, balanceID int64, err error) {
 		if err != nil {
 			return -1, -1, fmt.Errorf("scan: %w", err)
 		}
+
 		return
 	}
 
@@ -31,13 +34,15 @@ func (sql DB) GetBalance(userID int64) (balance, balanceID int64, err error) {
 }
 
 func (sql DB) ChangeBalance(userID, change int64, description string) error {
-	t, err := sql.conn.Begin()
+	ctx := context.Background()
+
+	t, err := sql.conn.Begin(ctx)
 	if err != nil {
 		return fmt.Errorf("begin transaction: %w", err)
 	}
-	defer t.Rollback()
+	defer t.Rollback(ctx)
 
-	rows, err := t.Query("SELECT balance,balance_id FROM balances WHERE user_id = $1 FOR UPDATE", userID)
+	rows, err := t.Query(ctx, "SELECT balance,balance_id FROM balances WHERE user_id = $1 FOR UPDATE", userID)
 	if err != nil {
 		return fmt.Errorf("get balance: query: %w", err)
 	}
@@ -62,6 +67,7 @@ func (sql DB) ChangeBalance(userID, change int64, description string) error {
 		}
 
 		err = t.QueryRow(
+			ctx,
 			"INSERT INTO balances (user_id,balance) VALUES ($1,$2) RETURNING balance_id", userID, change,
 		).Scan(&balanceID)
 
@@ -78,7 +84,7 @@ func (sql DB) ChangeBalance(userID, change int64, description string) error {
 		return fmt.Errorf("insufficient funds: missing %.2f", float64(-balance)/100)
 	}
 
-	_, err = t.Exec("UPDATE balances SET balance = $1 WHERE balance_id = $2", balance, balanceID)
+	_, err = t.Exec(ctx, "UPDATE balances SET balance = $1 WHERE balance_id = $2", balance, balanceID)
 	if err != nil {
 		return fmt.Errorf(
 			"update balance (id %d, change %d, new balance %d): %w",
@@ -86,7 +92,7 @@ func (sql DB) ChangeBalance(userID, change int64, description string) error {
 		)
 	}
 trans:
-	_, err = t.Exec(`INSERT INTO transactions (balance_id,action,description,date) 
+	_, err = t.Exec(ctx, `INSERT INTO transactions (balance_id,action,description,date) 
 	VALUES ($1,$2,$3,$4)`, balanceID, change, description, time.Now().UTC())
 
 	if err != nil {
@@ -96,7 +102,7 @@ trans:
 		)
 	}
 
-	err = t.Commit()
+	err = t.Commit(ctx)
 	if err != nil {
 		return fmt.Errorf("commit transaction: %w", err)
 	}
@@ -104,8 +110,8 @@ trans:
 	return nil
 }
 
-func getBalanceForUpdate(db *sql.Tx, userID int64) (balance, balanceID int64, err error) {
-	rows, err := db.Query("SELECT balance,balance_id FROM balances WHERE user_id = $1", userID)
+func getBalanceForUpdate(db pgx.Tx, userID int64) (balance, balanceID int64, err error) {
+	rows, err := db.Query(context.Background(), "SELECT balance,balance_id FROM balances WHERE user_id = $1", userID)
 
 	if err != nil {
 		return -1, -1, fmt.Errorf("query: %w", err)
