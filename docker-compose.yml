@@ -21,7 +21,8 @@ services:
     depends_on:
       - postgres
     environment:
-      ARGS: -config docker.toml
+      POSTGRES_IP: postgres
+      ARGS: -env
     networks:
       - hosts
 networks:

@@ -19,6 +19,7 @@ func main() {
 	currPath := flag.String("curr", "currencies.json", "currencies file path (default 'currencies.json')")
 	load := flag.Bool("load", false, "skip api loading, read currencies file")
 	skip := flag.Bool("skip", false, "disable updating cycle")
+	env := flag.Bool("env", false, "load from environment variables")
 
 	flag.Parse()
 
@@ -33,6 +34,13 @@ func main() {
 	conf, err := config.ReadConfig(*configPath)
 	if err != nil {
 		log.Fatalln(fmt.Errorf("reading config file (%s): %w", *configPath, err))
+	}
+
+	if *env {
+		err = config.ReadEnv(conf)
+		if err != nil {
+			log.Fatalln(fmt.Errorf("loading environments: %w", err))
+		}
 	}
 
 	db, err := database.New(conf.Postgres)

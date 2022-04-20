@@ -7,5 +7,6 @@ RUN cd /server/cmd/app && go build -o bin
 # final stage
 FROM alpine
 WORKDIR /app
-COPY --from=build-env /server/cmd/app/ /app/
-ENTRYPOINT ./bin
+COPY --from=build-env /server/cmd/app/bin /app/bin
+COPY --from=build-env /server/cmd/app/config.toml /app/config.toml
+ENTRYPOINT ./bin $ARGS

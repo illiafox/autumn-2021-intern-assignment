@@ -19,7 +19,7 @@ func New(conf config.Postgres) (*DB, error) {
 	ctx, cancel := context.WithTimeout(context.Background(), time.Second*5)
 	defer cancel()
 
-	conn, err := pgxpool.Connect(
+	pool, err := pgxpool.Connect(
 		ctx,
 		fmt.Sprintf("postgres://%s:%s@%v:%v/%v?sslmode=disable",
 			conf.User,
@@ -34,10 +34,10 @@ func New(conf config.Postgres) (*DB, error) {
 		return nil, fmt.Errorf("opening connection: %w", err)
 	}
 
-	err = conn.Ping(ctx)
+	err = pool.Ping(ctx)
 	if err != nil {
 		return nil, fmt.Errorf("ping: %w", err)
 	}
 
-	return &DB{conn}, nil
+	return &DB{pool}, nil
 }

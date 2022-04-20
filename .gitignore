@@ -3,3 +3,6 @@
 .idea
 /tests/log.txt
 /tests/testdata/
+/cmd/pgbouncer/pgbouncer.log
+/cmd/pgbouncer/pgbouncer.pid
+/cmd/app/log.txt

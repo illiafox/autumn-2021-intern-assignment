@@ -38,9 +38,31 @@ go build -o server
 ```shell
 ./server -log mylog.txt
 ```
+Со чтением `environment variables`:
+```shell
+./server -env
+```
+```ini
+"POSTGRES_USER"
+"POSTGRES_PASSWORD"
+"POSTGRES_DATABASE"
+"POSTGRES_PORT"
+"POSTGRES_IP"
+"POSTGRES_PROTOCOL"       
+```
+
+## PgBouncer
+### [Инструкция по установке](https://www.pgbouncer.org/install.html#building)
+```shell
+cd cmd/pgbouncer
+pgbouncer pgbouncer.ini
+```
+```shell
+POSTGRES_IP=5433 ./server -env # или сменить порт в конфиге
+```
 
 ## docker-compose
-**API готова к работе** сразу после поднятия контейнера
+**API готова к работе** после поднятия контейнера
 ### Запуск
 ```shell
 docker-compose up

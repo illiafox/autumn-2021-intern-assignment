@@ -1,16 +1,16 @@
 package config
 
 type Postgres struct {
-	User     string
-	Pass     string
-	DbName   string
-	IP       string
-	Port     string
-	Protocol string
+	User     string `env:"POSTGRES_USER"`
+	Pass     string `env:"POSTGRES_PASSWORD"`
+	DbName   string `env:"POSTGRES_DATABASE"`
+	IP       string `env:"POSTGRES_IP"`
+	Port     string `env:"POSTGRES_PORT"`
+	Protocol string `env:"POSTGRES_PROTOCOL"`
 }
 
 type Host struct {
-	Port string
+	Port string `env:"HOST_PORT"`
 }
 
 type Exchanger struct {
