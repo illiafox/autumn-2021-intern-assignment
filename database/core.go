@@ -1,12 +1,12 @@
 package database
 
 import (
-	"autumn-2021-intern-assignment/utils/config"
 	"context"
 	"fmt"
-	"github.com/jackc/pgx/v4/pgxpool"
 	"time"
 
+	"autumn-2021-intern-assignment/utils/config"
+	"github.com/jackc/pgx/v4/pgxpool"
 	// postgres
 	_ "github.com/jackc/pgx/v4"
 )

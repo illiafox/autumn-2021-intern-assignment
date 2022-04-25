@@ -1,0 +1,72 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: avito-api
+  labels:
+    app: avito-api
+spec:
+  #  replicas: 3
+  selector:
+    matchLabels:
+      project: api
+  template:
+    metadata:
+      labels:
+        project: api   # Service will look for those PODS Labels!!!
+    spec:
+      containers:
+        - name: api
+          image: illiafox/avito:latest
+          ports:
+            - containerPort: 8080
+          env:
+            - name: ARGS
+              value: -env
+            - name: POSTGRES_IP
+              value: host.minikube.internal
+
+---
+
+apiVersion: autoscaling/v2
+kind: HorizontalPodAutoscaler
+metadata:
+  name: avito-api
+spec:
+  scaleTargetRef:
+    apiVersion: apps/v2
+    kind: Deployment
+    name: avito-api
+  minReplicas: 1
+  maxReplicas: 10
+  metrics:
+    - type: Resource
+      resource:
+        name: cpu
+        target:
+          type: Utilization
+          averageUtilization: 70
+    - type: Resource
+      resource:
+        name: memory
+        target:
+          type: Utilization
+          averageUtilization: 70
+
+---
+
+apiVersion: v1
+kind: Service
+metadata:
+  name: avito-api
+  labels:
+    env: production
+    owner: illiafox
+spec:
+  selector:
+    project: api   # Selecting PODS with those Labels
+  ports:
+    - name: api
+      protocol: TCP
+      port: 8080  # Port on Load Balancer
+      targetPort: 8080  # Port on POD
+  type: LoadBalancer

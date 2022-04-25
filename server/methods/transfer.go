@@ -2,8 +2,11 @@ package methods
 
 import (
 	"encoding/json"
+	"errors"
+	"net/http"
 
 	"autumn-2021-intern-assignment/database"
+	"autumn-2021-intern-assignment/public"
 	"github.com/valyala/fasthttp"
 )
 
@@ -19,28 +22,42 @@ func Transfer(db *database.DB, ctx *fasthttp.RequestCtx) {
 
 	err := json.Unmarshal(ctx.PostBody(), &trans)
 	if err != nil {
-		ctx.Write(jsonError("decoding json: %w", err))
+		ctx.SetStatusCode(http.StatusBadRequest)
+		jsonError(ctx, "decoding json: %w", err)
+
 		return
 	}
 
 	if trans.ToID <= 0 {
-		ctx.Write(jsonError("wrong 'to_id' field value: %d", trans.ToID))
+		ctx.SetStatusCode(http.StatusBadRequest)
+		jsonError(ctx, "wrong 'to_id' field value: %d", trans.ToID)
+
 		return
 	}
 	if trans.FromID <= 0 {
-		ctx.Write(jsonError("wrong 'from_id' field value: %d", trans.FromID))
+		ctx.SetStatusCode(http.StatusBadRequest)
+		jsonError(ctx, "wrong 'from_id' field value: %d", trans.FromID)
+
 		return
 	}
 	if trans.Amount <= 0 {
-		ctx.Write(jsonError("wrong 'amount' field value: can't be lower or equal zero, got %d", trans.Amount))
+		ctx.SetStatusCode(http.StatusBadRequest)
+		jsonError(ctx, "wrong 'amount' field value: can't be lower or equal zero, got %d", trans.Amount)
+
 		return
 	}
 
 	err = db.Transfer(trans.FromID, trans.ToID, trans.Amount, trans.Description)
 	if err != nil {
-		ctx.Write(jsonError("transfer: %w", err))
+		if errors.As(err, public.ErrInternal) {
+			ctx.SetStatusCode(http.StatusUnprocessableEntity)
+		} else {
+			ctx.SetStatusCode(http.StatusNotAcceptable)
+		}
+		jsonError(ctx, "transfer: %w", err)
+
 		return
 	}
 
-	ctx.Write(jsonSuccess())
+	jsonSuccess(ctx)
 }

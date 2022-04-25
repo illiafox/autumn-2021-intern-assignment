@@ -1,13 +1,17 @@
 package methods
 
 import (
-	"autumn-2021-intern-assignment/database"
-	"autumn-2021-intern-assignment/exchange"
 	"context"
 	"encoding/json"
+	"errors"
+	"net/http"
+	"strconv"
+
+	"autumn-2021-intern-assignment/database"
+	"autumn-2021-intern-assignment/exchange"
+	"autumn-2021-intern-assignment/public"
 	"github.com/shopspring/decimal"
 	"github.com/valyala/fasthttp"
-	"strconv"
 )
 
 type getJSON struct {
@@ -26,18 +30,28 @@ func Get(db *database.DB, ctx *fasthttp.RequestCtx) {
 
 	err := json.Unmarshal(ctx.PostBody(), &get)
 	if err != nil {
-		ctx.Write(jsonError("decoding json: %w", err))
+		ctx.SetStatusCode(http.StatusBadRequest)
+		jsonError(ctx, "decoding json: %w", err)
+
+		return
+	}
+
+	if get.User <= 0 {
+		ctx.SetStatusCode(http.StatusBadRequest)
+		jsonError(ctx, "wrong 'user' field value: %d", get.User)
+
 		return
 	}
 
 	balance, _, err := db.GetBalance(context.Background(), get.User)
 	if err != nil {
-		ctx.Write(jsonError("get balance: %w", err))
-		return
-	}
+		if errors.As(err, public.ErrInternal) {
+			ctx.SetStatusCode(http.StatusInternalServerError)
+		} else {
+			ctx.SetStatusCode(http.StatusNotAcceptable)
+		}
+		jsonError(ctx, "get balance: %w", err)
 
-	if get.User <= 0 {
-		ctx.Write(jsonError("wrong 'user' field value: %d", get.User))
 		return
 	}
 
@@ -46,7 +60,9 @@ func Get(db *database.DB, ctx *fasthttp.RequestCtx) {
 	if get.Base != "" {
 		ex, ok := exchange.GetExchange(get.Base)
 		if !ok {
-			ctx.Write(jsonError("base: abbreviation '%s' is not supported", get.Base))
+			ctx.SetStatusCode(http.StatusNotAcceptable)
+			jsonError(ctx, "base: abbreviation '%s' is not supported", get.Base)
+
 			return
 		}
 
@@ -60,8 +76,11 @@ func Get(db *database.DB, ctx *fasthttp.RequestCtx) {
 
 	data, err := json.Marshal(ret)
 	if err != nil {
-		ctx.Write(jsonError("encoding json: %w", err))
+		ctx.SetStatusCode(http.StatusInternalServerError)
+		jsonError(ctx, "encoding json: %w", err)
+
 		return
 	}
+
 	ctx.Write(data)
 }

@@ -3,8 +3,8 @@
 ## Запуск
 
 ### 1. Требования
-* **PostgreSQL:** `14.2` и выше
-* **Go:** `1.18`
+* **PostgreSQL:** `14.2`
+* **Go:** `1.17`
 
 
 ### 2. Подготовка `PostgreSQL`
@@ -49,6 +49,12 @@ go build -o server
 "POSTGRES_PORT"
 "POSTGRES_IP"
 "POSTGRES_PROTOCOL"       
+```
+
+## Kubernetes
+Для запуска не через minikube поменяйте айпи PostgreSQL
+```shell
+kubectl apply -f deploy.yaml
 ```
 
 ## PgBouncer
@@ -135,7 +141,7 @@ user_id bigint -- айди пользователя, можно изменить
 balance integer  -- баланс В КОПЕЙКАХ
 ```
 ### transactions: 
-```postgresql
+```mysql
 transaction_id bigserial primary key -- айди транзакции
 balance_id bigint -- айди баланса получателя
 from_id bigint -- айди баланса отправителя, не NULL только в переводах
@@ -148,7 +154,18 @@ description text -- описание транзакции
 ### ~~Тесты~~: в разработке
 **Порт по умолчанию `8080`, Endpoint `http://localhost:8080/`**
 
-Ошибки наполнения полей одинаковые, ниже будут рассмотрены только важные
+---
+
+#### `200` Accepted - запрос успешно выполнен
+
+#### `400` Bad Request - неверный формат входных данных
+#### `406` Not Acceptable - данные не найдены
+#### `422` Unprocessable Entity - запрос не может выполняться дальше с текущими входными значениями
+
+#### `502` Internal Server Error - критическая ошибка (базы данных)
+
+---
+
 ### `/get` - получение баланса пользователя
 * Метод: `GET`
 * Успешный Status Code: `200 Accepted`
@@ -171,7 +188,7 @@ description text -- описание транзакции
 ```json5
 {
   "ok": false, // баланс с таким user_id не найден
-  "err": "get balance: balance with user id 10 not found"
+  "str": "get balance: balance with user id 10 not found"
 }
 ```
 
@@ -195,7 +212,7 @@ description text -- описание транзакции
 ```json5
 {
   "ok": false, // валюта не поддерживается
-  "err": "base: abbreviation 'EUR' is not supported"
+  "str": "base: abbreviation 'EUR' is not supported"
 }
 ```
 ---
@@ -234,7 +251,7 @@ description text -- описание транзакции
 ```json5
 {
   "ok": false, // если change < 0 и создается новый аккаунт
-  "err": "change balance: change (-10000) is below zero, balance creating is forbidden"
+  "str": "change balance: change (-10000) is below zero, balance creating is forbidden"
 }
 ```
 
@@ -258,7 +275,7 @@ description text -- описание транзакции
 ```json5
 {
   "ok": false, // from_id не хватает средств для перевода
-  "err": "transfer: insufficient funds: missing 92.00"
+  "str": "transfer: insufficient funds: missing 92.00"
 }
 ```
 ---
@@ -327,7 +344,7 @@ description text -- описание транзакции
 ```json5
 {
   "ok": false, // Баланс с user_id 10 не найден
-  "err": "get transfers: get balance (id 10): balance with user id 10 not found"
+  "str": "get transfers: get balance (id 10): balance with user id 10 not found"
 }
 ```
 
@@ -347,18 +364,9 @@ description text -- описание транзакции
 ```json5
 {
   "ok": false, // баланс с user_id 12 уже есть, для передачи можно удалить через /delete
-  "err": "db.Switch(old 10 - new 12): balance with user_id 12 already exists"
+  "str": "db.Switch(old 10 - new 12): balance with user_id 12 already exists"
 }
 ```
-
-### Общие ошибки
-* **decoding json**
-* **проверка синтаксиса**
-* * **проверка айди (валидные > 0)**
-* **ошибки бд**
-* * **предвиденные ошибки**
-* * **сбой работы**
-* **encoding json**
 
 ## TODO:
 1. Тесты SQL методов и самой API

@@ -1,8 +1,12 @@
 package methods
 
 import (
-	"autumn-2021-intern-assignment/database"
 	"encoding/json"
+	"errors"
+	"net/http"
+
+	"autumn-2021-intern-assignment/database"
+	"autumn-2021-intern-assignment/public"
 	"github.com/valyala/fasthttp"
 )
 
@@ -16,25 +20,37 @@ func Switch(db *database.DB, ctx *fasthttp.RequestCtx) {
 
 	err := json.Unmarshal(ctx.PostBody(), &sw)
 	if err != nil {
-		ctx.Write(jsonError("decoding json: %w", err))
+		ctx.SetStatusCode(http.StatusBadRequest)
+		jsonError(ctx, "decoding json: %w", err)
+
 		return
 	}
 
 	if sw.OldUserID <= 0 {
-		ctx.Write(jsonError("'old_user_id' can't be lower or equal zero, got %d", sw.OldUserID))
+		ctx.SetStatusCode(http.StatusBadRequest)
+		jsonError(ctx, "'old_user_id' can't be lower or equal zero, got %d", sw.OldUserID)
+
 		return
 	}
 
 	if sw.NewUserID <= 0 {
-		ctx.Write(jsonError("'new_user_id' can't be lower or equal zero, got %d", sw.NewUserID))
+		ctx.SetStatusCode(http.StatusBadRequest)
+		jsonError(ctx, "'new_user_id' can't be lower or equal zero, got %d", sw.NewUserID)
+
 		return
 	}
 
 	err = db.Switch(sw.OldUserID, sw.NewUserID)
 	if err != nil {
-		ctx.Write(jsonError("db.Switch(old %d - new %d): %w", sw.OldUserID, sw.NewUserID, err))
+		if errors.As(err, public.ErrInternal) {
+			ctx.SetStatusCode(http.StatusUnprocessableEntity)
+		} else {
+			ctx.SetStatusCode(http.StatusNotAcceptable)
+		}
+		jsonError(ctx, "switch: %w", err)
+
 		return
 	}
 
-	ctx.Write(jsonSuccess())
+	jsonSuccess(ctx)
 }

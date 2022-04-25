@@ -90,7 +90,7 @@ func Update(conf config.Exchanger) error {
 func Store(filepath string) error {
 	exchanges := make(map[string]float64)
 
-	exchangeMap.Range(func(key, value any) bool {
+	exchangeMap.Range(func(key, value interface{}) bool {
 		attr, ok := key.(string)
 		if !ok {
 			return false

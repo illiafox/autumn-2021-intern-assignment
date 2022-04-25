@@ -2,9 +2,12 @@ package database
 
 import (
 	"context"
-	sqlpack "database/sql"
+	types "database/sql"
 	"fmt"
 	"strconv"
+
+	"autumn-2021-intern-assignment/public"
+	"github.com/jackc/pgtype"
 )
 
 var sorts = map[string]string{
@@ -15,12 +18,12 @@ var sorts = map[string]string{
 }
 
 type Transaction struct {
-	TransactionID int64  `json:"transaction_id"`
-	BalanceID     int64  `json:"balance_id"`
-	FromID        string `json:"from_id"`
-	Action        int64  `json:"action"`
-	Date          string `json:"date"`
-	Description   string `json:"description"`
+	TransactionID int64            `json:"transaction_id"`
+	BalanceID     int64            `json:"balance_id"`
+	FromID        string           `json:"from_id"`
+	Action        int64            `json:"action"`
+	Date          pgtype.Timestamp `json:"date"`
+	Description   string           `json:"description"`
 }
 
 func (sql DB) GetTransfers(userID, offset, limit int64, sort string) ([]Transaction, error) {
@@ -28,7 +31,7 @@ func (sql DB) GetTransfers(userID, offset, limit int64, sort string) ([]Transact
 
 	_, balanceID, err := sql.GetBalance(ctx, userID)
 	if err != nil {
-		return nil, fmt.Errorf("get balance (id %d): %w", userID, err)
+		return nil, public.NewInternal(fmt.Errorf("get balance (id %d): %w", userID, err))
 	}
 
 	command, ok := sorts[sort]
@@ -39,24 +42,25 @@ func (sql DB) GetTransfers(userID, offset, limit int64, sort string) ([]Transact
 
 	rows, err := sql.conn.Query(ctx, command, balanceID, limit, offset)
 	if err != nil {
-		return nil, fmt.Errorf("select query: %w", err)
+		return nil, public.NewInternal(fmt.Errorf("select query: %w", err))
 	}
 	defer rows.Close()
 
 	var (
-		trs     []Transaction
-		t       Transaction
-		fromBuf sqlpack.NullInt64
+		trs  []Transaction
+		t    Transaction
+		from types.NullInt64
 	)
 
 	for rows.Next() {
-		err = rows.Scan(&t.TransactionID, &t.BalanceID, &fromBuf, &t.Action, &t.Date, &t.Description)
+		err = rows.Scan(&t.TransactionID, &t.BalanceID, &from, &t.Action, &t.Date, &t.Description)
+
 		if err != nil {
-			return nil, fmt.Errorf("scan transaction: %w", err)
+			return nil, public.NewInternal(fmt.Errorf("scan transaction: %w", err))
 		}
 
-		if fromBuf.Valid {
-			t.FromID = strconv.FormatInt(fromBuf.Int64, 10)
+		if from.Valid {
+			t.FromID = strconv.FormatInt(from.Int64, 10)
 		} else {
 			t.FromID = ""
 		}
@@ -66,7 +70,7 @@ func (sql DB) GetTransfers(userID, offset, limit int64, sort string) ([]Transact
 
 	err = rows.Err()
 	if err != nil {
-		return nil, fmt.Errorf("rows: %w", err)
+		return nil, public.NewInternal(fmt.Errorf("rows: %w", err))
 	}
 
 	return trs, nil

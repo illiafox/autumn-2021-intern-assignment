@@ -3,6 +3,7 @@ package methods
 import (
 	"encoding/json"
 	"fmt"
+	"io"
 )
 
 type errJSON struct {
@@ -10,26 +11,36 @@ type errJSON struct {
 	Err string `json:"err,omitempty"`
 }
 
-func jsonError(format string, a ...any) []byte {
-	buf, _ := json.Marshal(errJSON{
+func jsonError(writer io.Writer, format string, a ...interface{}) (int, error) {
+	str := fmt.Errorf(format, a...).Error()
+
+	buf, err := json.Marshal(errJSON{
 		Ok:  false,
-		Err: fmt.Errorf(format, a...).Error(),
+		Err: str,
 	})
 
-	return buf
+	if err != nil {
+		return writer.Write([]byte(str))
+	}
+
+	return writer.Write(buf)
 }
 
-func jsonErrorString(err string) []byte {
-	buf, _ := json.Marshal(errJSON{
+func jsonErrorString(writer io.Writer, str string) (int, error) {
+	buf, err := json.Marshal(errJSON{
 		Ok:  false,
-		Err: err,
+		Err: str,
 	})
 
-	return buf
+	if err != nil {
+		return writer.Write([]byte(str))
+	}
+
+	return writer.Write(buf)
 }
 
 var successBytes = []byte("{\"ok\":true}")
 
-func jsonSuccess() []byte {
-	return successBytes
+func jsonSuccess(writer io.Writer) (int, error) {
+	return writer.Write(successBytes)
 }

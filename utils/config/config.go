@@ -25,7 +25,7 @@ func ReadConfig(path string) (*Config, error) {
 }
 
 // ReadEnv reads struct recursively and set value from Environment if struct tag 'env' exists
-func ReadEnv(s any) error {
+func ReadEnv(s interface{}) error {
 	reflectType := reflect.TypeOf(s).Elem()
 	reflectValue := reflect.ValueOf(s).Elem()
 

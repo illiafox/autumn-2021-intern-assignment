@@ -2,8 +2,11 @@ package methods
 
 import (
 	"encoding/json"
+	"errors"
+	"net/http"
 
 	"autumn-2021-intern-assignment/database"
+	"autumn-2021-intern-assignment/public"
 	"github.com/valyala/fasthttp"
 )
 
@@ -24,33 +27,49 @@ func View(db *database.DB, ctx *fasthttp.RequestCtx) {
 
 	err := json.Unmarshal(ctx.PostBody(), &view)
 	if err != nil {
-		ctx.Write(jsonError("decoding json: %w", err))
+		ctx.SetStatusCode(http.StatusBadRequest)
+		jsonError(ctx, "decoding json: %w", err)
+
 		return
 	}
 
 	if view.User <= 0 {
-		ctx.Write(jsonError("wrong 'user' field value: %d", view.User))
+		ctx.SetStatusCode(http.StatusBadRequest)
+		jsonError(ctx, "wrong 'user' field value: %d", view.User)
+
 		return
 	}
 
 	if view.Limit < 1 {
-		ctx.Write(jsonError("wrong 'limit' field value: cant be lower than 1, got %d", view.User))
+		ctx.SetStatusCode(http.StatusBadRequest)
+		jsonError(ctx, "wrong 'limit' field value: cant be lower than 1, got %d", view.Limit)
+
 		return
 	}
 
 	if view.Offset < 0 {
-		ctx.Write(jsonError("wrong 'offset' field value: cant be lower than 0 got %d", view.User))
+		ctx.SetStatusCode(http.StatusBadRequest)
+		jsonError(ctx, "wrong 'offset' field value: cant be lower than 0 got %d", view.Offset)
+
 		return
 	}
 
 	if view.Sort == "" {
-		ctx.Write(jsonErrorString("'sort' field value cant be empty"))
+		ctx.SetStatusCode(http.StatusBadRequest)
+		jsonErrorString(ctx, "'sort' field value cant be empty")
+
 		return
 	}
 
 	trans, err := db.GetTransfers(view.User, view.Offset, view.Limit, view.Sort)
 	if err != nil {
-		ctx.Write(jsonError("get transfers: %w", err))
+		if errors.As(err, public.ErrInternal) {
+			ctx.SetStatusCode(http.StatusInternalServerError)
+		} else {
+			ctx.SetStatusCode(http.StatusUnprocessableEntity)
+		}
+		jsonError(ctx, "get transfers: %w", err)
+
 		return
 	}
 
@@ -59,7 +78,9 @@ func View(db *database.DB, ctx *fasthttp.RequestCtx) {
 		Transactions: trans,
 	})
 	if err != nil {
-		ctx.Write(jsonError("encoding json: %w", err))
+		ctx.SetStatusCode(http.StatusInternalServerError)
+		jsonError(ctx, "encoding json: %w", err)
+
 		return
 	}
 
