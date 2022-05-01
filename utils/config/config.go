@@ -2,11 +2,12 @@ package config
 
 import (
 	"fmt"
-	"github.com/BurntSushi/toml"
 	"io/ioutil"
 	"os"
 	"reflect"
 	"strconv"
+
+	"github.com/BurntSushi/toml"
 )
 
 func ReadConfig(path string) (*Config, error) {
@@ -69,6 +70,18 @@ func ReadEnv(s interface{}) error {
 			}
 
 			value.SetInt(num)
+		case reflect.Bool:
+			x, err := strconv.ParseBool(v)
+			if err != nil {
+				return fmt.Errorf(
+					"can't parse %s with type %s: %w",
+					typeField.Name,
+					typeField.Type,
+					err,
+				)
+			}
+
+			value.SetBool(x)
 		default:
 			return fmt.Errorf("can't set %s", reflectType)
 		}

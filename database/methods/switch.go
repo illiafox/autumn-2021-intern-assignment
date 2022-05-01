@@ -1,4 +1,4 @@
-package database
+package methods
 
 import (
 	"context"
@@ -7,8 +7,7 @@ import (
 	"autumn-2021-intern-assignment/public"
 )
 
-func (sql DB) Switch(oldUserID, newUserID int64) error {
-	ctx := context.Background()
+func (sql Methods) Switch(ctx context.Context, oldUserID, newUserID int64) error {
 
 	tx, err := sql.conn.Begin(ctx)
 	if err != nil {
@@ -16,7 +15,7 @@ func (sql DB) Switch(oldUserID, newUserID int64) error {
 	}
 	defer tx.Rollback(ctx)
 
-	_, balanceID, err := getBalanceForUpdate(tx, oldUserID)
+	_, balanceID, err := sql.GetBalanceForUpdate(ctx, tx, oldUserID)
 	if err != nil {
 		return public.NewInternal(fmt.Errorf("GetBalance(old %d): %w", oldUserID, err))
 	}

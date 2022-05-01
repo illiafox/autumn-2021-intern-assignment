@@ -1,4 +1,4 @@
-package database
+package methods
 
 import (
 	"context"
@@ -8,12 +8,10 @@ import (
 	"autumn-2021-intern-assignment/public"
 )
 
-func (sql DB) Transfer(fromID, toID, amount int64, description string) error {
+func (sql Methods) Transfer(ctx context.Context, fromID, toID, amount int64, description string) error {
 	if amount < 0 {
 		return fmt.Errorf("amount can't be lower than zero, got %d", amount)
 	}
-
-	ctx := context.Background()
 
 	tx, err := sql.conn.Begin(ctx)
 	if err != nil {
@@ -21,7 +19,7 @@ func (sql DB) Transfer(fromID, toID, amount int64, description string) error {
 	}
 	defer tx.Rollback(ctx)
 
-	sender, senderID, err := getBalanceForUpdate(tx, fromID)
+	sender, senderID, err := sql.GetBalanceForUpdate(ctx, tx, fromID)
 	if err != nil {
 		return public.NewInternal(fmt.Errorf("get sender balance: %w", err))
 	}

@@ -5,17 +5,14 @@ import (
 	"fmt"
 	"time"
 
+	"autumn-2021-intern-assignment/database/methods"
 	"autumn-2021-intern-assignment/utils/config"
-	"github.com/jackc/pgx/v4/pgxpool"
 	// postgres
 	_ "github.com/jackc/pgx/v4"
+	"github.com/jackc/pgx/v4/pgxpool"
 )
 
-type DB struct {
-	conn *pgxpool.Pool
-}
-
-func New(conf config.Postgres) (*DB, error) {
+func New(conf config.Postgres) (*Database, error) {
 	ctx, cancel := context.WithTimeout(context.Background(), time.Second*5)
 	defer cancel()
 
@@ -39,5 +36,17 @@ func New(conf config.Postgres) (*DB, error) {
 		return nil, fmt.Errorf("ping: %w", err)
 	}
 
-	return &DB{pool}, nil
+	return &Database{
+		Methods: methods.New(pool),
+		pool:    pool,
+	}, nil
+}
+
+type Database struct {
+	Methods methods.Methods
+	pool    *pgxpool.Pool
+}
+
+func (d Database) Close() {
+	d.pool.Close()
 }

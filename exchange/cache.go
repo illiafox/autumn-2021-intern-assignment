@@ -1,7 +1,6 @@
 package exchange
 
 import (
-	"autumn-2021-intern-assignment/utils/config"
 	"encoding/json"
 	"fmt"
 	"io/ioutil"
@@ -10,6 +9,8 @@ import (
 	"os"
 	"strings"
 	"time"
+
+	"autumn-2021-intern-assignment/utils/config"
 )
 
 func Update(conf config.Exchanger) error {
@@ -62,6 +63,7 @@ func Update(conf config.Exchanger) error {
 
 	for i := 2; i <= len(conf.Base); i += 2 {
 		query.Set("q", strings.Join(conf.Base[i-2:i], ","))
+
 		resp, err := client.Get(u.String() + "convert?" + query.Encode())
 		if err != nil {
 			return fmt.Errorf("send exchange request: %w", err)
@@ -69,6 +71,7 @@ func Update(conf config.Exchanger) error {
 
 		if resp.StatusCode != 200 {
 			data, _ := ioutil.ReadAll(resp.Body)
+
 			return fmt.Errorf("API error (status %d): %s", resp.StatusCode, string(data))
 		}
 

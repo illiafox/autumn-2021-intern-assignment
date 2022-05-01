@@ -1,13 +1,14 @@
 package methods
 
 import (
+	"context"
 	"encoding/json"
 	"errors"
+	"fmt"
 	"net/http"
 
-	"autumn-2021-intern-assignment/database"
+	"autumn-2021-intern-assignment/database/model"
 	"autumn-2021-intern-assignment/public"
-	"github.com/valyala/fasthttp"
 )
 
 type viewJSON struct {
@@ -18,71 +19,72 @@ type viewJSON struct {
 }
 
 type viewRetJSON struct {
-	Ok           bool                   `json:"ok"`
-	Transactions []database.Transaction `json:"transactions"`
+	Ok           bool                `json:"ok"`
+	Transactions []model.Transaction `json:"transactions"`
 }
 
-func View(db *database.DB, ctx *fasthttp.RequestCtx) {
+func (m Methods) View(w http.ResponseWriter, r *http.Request) {
 	var view viewJSON
 
-	err := json.Unmarshal(ctx.PostBody(), &view)
+	err := json.NewDecoder(r.Body).Decode(&view)
 	if err != nil {
-		ctx.SetStatusCode(http.StatusBadRequest)
-		jsonError(ctx, "decoding json: %w", err)
+		w.WriteHeader(http.StatusBadRequest)
+		EncodeError(w, fmt.Errorf("decoding json: %w", err))
 
 		return
 	}
 
 	if view.User <= 0 {
-		ctx.SetStatusCode(http.StatusBadRequest)
-		jsonError(ctx, "wrong 'user' field value: %d", view.User)
+		w.WriteHeader(http.StatusBadRequest)
+		EncodeError(w, fmt.Errorf("wrong 'user' field value: %d", view.User))
 
 		return
 	}
 
 	if view.Limit < 1 {
-		ctx.SetStatusCode(http.StatusBadRequest)
-		jsonError(ctx, "wrong 'limit' field value: cant be lower than 1, got %d", view.Limit)
+		w.WriteHeader(http.StatusBadRequest)
+		EncodeError(w, fmt.Errorf("wrong 'limit' field value: cant be lower than 1, got %d", view.Limit))
 
 		return
 	}
 
 	if view.Offset < 0 {
-		ctx.SetStatusCode(http.StatusBadRequest)
-		jsonError(ctx, "wrong 'offset' field value: cant be lower than 0 got %d", view.Offset)
+		w.WriteHeader(http.StatusBadRequest)
+		EncodeError(w, fmt.Errorf("wrong 'offset' field value: cant be lower than 0 got %d", view.Offset))
 
 		return
 	}
 
 	if view.Sort == "" {
-		ctx.SetStatusCode(http.StatusBadRequest)
-		jsonErrorString(ctx, "'sort' field value cant be empty")
+		w.WriteHeader(http.StatusBadRequest)
+		EncodeString(w, "'sort' field value cant be empty")
 
 		return
 	}
 
-	trans, err := db.GetTransfers(view.User, view.Offset, view.Limit, view.Sort)
+	ctx := context.Background()
+
+	trans, err := m.db.GetTransfers(ctx, view.User, view.Offset, view.Limit, view.Sort)
 	if err != nil {
 		if errors.As(err, public.ErrInternal) {
-			ctx.SetStatusCode(http.StatusInternalServerError)
+			w.WriteHeader(http.StatusInternalServerError)
 		} else {
-			ctx.SetStatusCode(http.StatusUnprocessableEntity)
+			w.WriteHeader(http.StatusUnprocessableEntity)
 		}
-		jsonError(ctx, "get transfers: %w", err)
+		EncodeError(w, fmt.Errorf("get transfers: %w", err))
 
 		return
 	}
 
-	data, err := json.Marshal(viewRetJSON{
+	err = json.NewEncoder(w).Encode(viewRetJSON{
 		Ok:           true,
 		Transactions: trans,
 	})
 	if err != nil {
-		ctx.SetStatusCode(http.StatusInternalServerError)
-		jsonError(ctx, "encoding json: %w", err)
+		w.WriteHeader(http.StatusInternalServerError)
+		EncodeError(w, fmt.Errorf("encoding json: %w", err))
 
 		return
 	}
 
-	ctx.Write(data)
 }

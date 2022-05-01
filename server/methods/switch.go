@@ -1,13 +1,13 @@
 package methods
 
 import (
+	"context"
 	"encoding/json"
 	"errors"
+	"fmt"
 	"net/http"
 
-	"autumn-2021-intern-assignment/database"
 	"autumn-2021-intern-assignment/public"
-	"github.com/valyala/fasthttp"
 )
 
 type switchJSON struct {
@@ -15,42 +15,44 @@ type switchJSON struct {
 	NewUserID int64 `json:"new_user_id"`
 }
 
-func Switch(db *database.DB, ctx *fasthttp.RequestCtx) {
+func (m Methods) Switch(w http.ResponseWriter, r *http.Request) {
 	var sw switchJSON
 
-	err := json.Unmarshal(ctx.PostBody(), &sw)
+	err := json.NewDecoder(r.Body).Decode(&sw)
 	if err != nil {
-		ctx.SetStatusCode(http.StatusBadRequest)
-		jsonError(ctx, "decoding json: %w", err)
+		w.WriteHeader(http.StatusBadRequest)
+		EncodeError(w, fmt.Errorf("decoding json: %w", err))
 
 		return
 	}
 
 	if sw.OldUserID <= 0 {
-		ctx.SetStatusCode(http.StatusBadRequest)
-		jsonError(ctx, "'old_user_id' can't be lower or equal zero, got %d", sw.OldUserID)
+		w.WriteHeader(http.StatusBadRequest)
+		EncodeError(w, fmt.Errorf("'old_user_id' can't be lower or equal zero, got %d", sw.OldUserID))
 
 		return
 	}
 
 	if sw.NewUserID <= 0 {
-		ctx.SetStatusCode(http.StatusBadRequest)
-		jsonError(ctx, "'new_user_id' can't be lower or equal zero, got %d", sw.NewUserID)
+		w.WriteHeader(http.StatusBadRequest)
+		EncodeError(w, fmt.Errorf("'new_user_id' can't be lower or equal zero, got %d", sw.NewUserID))
 
 		return
 	}
 
-	err = db.Switch(sw.OldUserID, sw.NewUserID)
+	ctx := context.Background()
+
+	err = m.db.Switch(ctx, sw.OldUserID, sw.NewUserID)
 	if err != nil {
 		if errors.As(err, public.ErrInternal) {
-			ctx.SetStatusCode(http.StatusUnprocessableEntity)
+			w.WriteHeader(http.StatusUnprocessableEntity)
 		} else {
-			ctx.SetStatusCode(http.StatusNotAcceptable)
+			w.WriteHeader(http.StatusNotAcceptable)
 		}
-		jsonError(ctx, "switch: %w", err)
+		EncodeError(w, fmt.Errorf("switch: %w", err))
 
 		return
 	}
 
-	jsonSuccess(ctx)
+	w.Write(success)
 }

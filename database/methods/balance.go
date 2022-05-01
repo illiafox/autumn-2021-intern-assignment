@@ -1,4 +1,4 @@
-package database
+package methods
 
 import (
 	"context"
@@ -7,9 +7,18 @@ import (
 
 	"autumn-2021-intern-assignment/public"
 	"github.com/jackc/pgx/v4"
+	"github.com/jackc/pgx/v4/pgxpool"
 )
 
-func (sql DB) GetBalance(ctx context.Context, userID int64) (balance, balanceID int64, err error) {
+type Methods struct {
+	conn *pgxpool.Pool
+}
+
+func New(conn *pgxpool.Pool) Methods {
+	return Methods{conn}
+}
+
+func (sql Methods) GetBalance(ctx context.Context, userID int64) (balance, balanceID int64, err error) {
 
 	rows, err := sql.conn.Query(ctx, "SELECT balance,balance_id FROM balances WHERE user_id = $1", userID)
 
@@ -35,8 +44,7 @@ func (sql DB) GetBalance(ctx context.Context, userID int64) (balance, balanceID 
 	return -1, -1, fmt.Errorf("balance with user id %d not found", userID)
 }
 
-func (sql DB) ChangeBalance(userID, change int64, description string) error {
-	ctx := context.Background()
+func (sql Methods) ChangeBalance(ctx context.Context, userID, change int64, description string) error {
 
 	t, err := sql.conn.Begin(ctx)
 	if err != nil {
@@ -113,8 +121,8 @@ final:
 	return nil
 }
 
-func getBalanceForUpdate(db pgx.Tx, userID int64) (balance, balanceID int64, err error) {
-	rows, err := db.Query(context.Background(), "SELECT balance,balance_id FROM balances WHERE user_id = $1", userID)
+func (Methods) GetBalanceForUpdate(ctx context.Context, db pgx.Tx, userID int64) (balance, balanceID int64, err error) {
+	rows, err := db.Query(ctx, "SELECT balance,balance_id FROM balances WHERE user_id = $1", userID)
 
 	if err != nil {
 		return -1, -1, public.NewInternal(fmt.Errorf("query: %w", err))

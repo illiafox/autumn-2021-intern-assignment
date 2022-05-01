@@ -1,4 +1,4 @@
-package database
+package methods
 
 import (
 	"context"
@@ -6,8 +6,8 @@ import (
 	"fmt"
 	"strconv"
 
+	"autumn-2021-intern-assignment/database/model"
 	"autumn-2021-intern-assignment/public"
-	"github.com/jackc/pgtype"
 )
 
 var sorts = map[string]string{
@@ -17,17 +17,7 @@ var sorts = map[string]string{
 	"SUM_ASC":   "SELECT * FROM transactions WHERE balance_id = $1 ORDER BY action ASC LIMIT $2 OFFSET $3",
 }
 
-type Transaction struct {
-	TransactionID int64            `json:"transaction_id"`
-	BalanceID     int64            `json:"balance_id"`
-	FromID        string           `json:"from_id"`
-	Action        int64            `json:"action"`
-	Date          pgtype.Timestamp `json:"date"`
-	Description   string           `json:"description"`
-}
-
-func (sql DB) GetTransfers(userID, offset, limit int64, sort string) ([]Transaction, error) {
-	ctx := context.Background()
+func (sql Methods) GetTransfers(ctx context.Context, userID, offset, limit int64, sort string) ([]model.Transaction, error) {
 
 	_, balanceID, err := sql.GetBalance(ctx, userID)
 	if err != nil {
@@ -47,8 +37,8 @@ func (sql DB) GetTransfers(userID, offset, limit int64, sort string) ([]Transact
 	defer rows.Close()
 
 	var (
-		trs  []Transaction
-		t    Transaction
+		trs  []model.Transaction
+		t    model.Transaction
 		from types.NullInt64
 	)
 

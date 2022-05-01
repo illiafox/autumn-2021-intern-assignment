@@ -8,9 +8,13 @@ Protocol = "tcp"
 
 [Host]
 Port = "8080"
+Key = "cert/localhost.key"
+Cert = "cert/localhost.crt"
+
 
 [Exchanger]
 Skip=true
+Load=false
 Every=120
 Endpoint="https://free.currconv.com/api/v7/"
 Key="b904b50e29877e8c38e0"

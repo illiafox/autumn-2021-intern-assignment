@@ -11,13 +11,17 @@ type Postgres struct {
 
 type Host struct {
 	Port string `env:"HOST_PORT"`
+	Key  string `env:"HOST_KEY_PATH"`  // Path to TLS key
+	Cert string `env:"HOST_CERT_PATH"` // Path to TLS certificate
 }
 
 type Exchanger struct {
-	Skip     bool
-	Every    int
-	Endpoint string
-	Key      string
+	Skip     bool   `env:"EXCHANGER_SKIP"`
+	Load     bool   `env:"EXCHANGER_LOAD"`
+	Every    int    `env:"EXCHANGER_EVERY"`
+	Endpoint string `env:"EXCHANGER_ENDPOINT"`
+	Key      string `env:"EXCHANGER_KEY"`
+	Path     string `env:"EXCHANGER_PATH"`
 	Base     []string
 }
 

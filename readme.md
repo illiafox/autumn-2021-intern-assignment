@@ -1,372 +1,425 @@
-# Тестовое задание на позицию стажера-бекендера
+# Test task for the position of trainee golang backend developer
 
-## Запуск
+### [Версия на Русском](https://github.com/illiafox/autumn-2021-intern-assignment/blob/master/russian.md)
 
-### 1. Требования
+---
+## Building / Running
+
+### 1. Requirements
+
 * **PostgreSQL:** `14.2`
 * **Go:** `1.17`
 
+### 2. Setuping `PostgreSQL`
 
-### 2. Подготовка `PostgreSQL`
+#### Tables creation
 
-Достаточно запустить файл `migrate-up.sql`
-```sql
-SOURCE migrate-up.sql
-```
-**docker-compose** сделает это автоматически
-
----
-
-#### УДАЛЕНИЕ ТАБЛИЦ
-```sql
-SOURCE migrate-down.sql
-```
-### 3. Сборка и запуск
-```shell
-git clone https://github.com/illiafox/autumn-2021-intern-assignment
-```
+*docker-compose does this automatically*
 
 ```shell
+migrate -database ${POSTGRESQL_URL} -path migrate/ up
+```
+
+#### Dropping
+
+```shell
+migrate -database ${POSTGRESQL_URL} -path migrate/ down
+```
+
+### 3. Application building
+
+```shell
+git clone https://github.com/illiafox/autumn-2021-intern-assignment avito
+cd avito/cmd/app
+
 go build -o server
 ./server
 ```
-С нестандартным путем к конфиг файлу `config.toml`
+
+#### With non-standard config and log file paths
+
 ```shell
-./server -confing docker.toml
-```
-С нестандартным путем для лога `log.txt`
-```shell
-./server -log mylog.txt
-```
-Со чтением `environment variables`:
-```shell
-./server -env
-```
-```ini
-"POSTGRES_USER"
-"POSTGRES_PASSWORD"
-"POSTGRES_DATABASE"
-"POSTGRES_PORT"
-"POSTGRES_IP"
-"POSTGRES_PROTOCOL"       
+server -confing config.toml -log log.txt
 ```
 
-## Kubernetes
-Для запуска не через minikube поменяйте айпи PostgreSQL
-```shell
-kubectl apply -f deploy.yaml
-```
+#### With reading from `environment`:
 
-## PgBouncer
-### [Инструкция по установке](https://www.pgbouncer.org/install.html#building)
+Available keys can be found in **[config structure](https://github.com/illiafox/autumn-2021-intern-assignment/blob/master/utils/config/struct.go#L3:L25)** tags
+
 ```shell
-cd cmd/pgbouncer
-pgbouncer pgbouncer.ini
-```
-```shell
-POSTGRES_IP=5433 ./server -env # или сменить порт в конфиге
+POSTGRES_PORT=4585 server -env
 ```
 
 ## docker-compose
-**API готова к работе** после поднятия контейнера
-### Запуск
+
+**API starts** immediately after containers upping
+
 ```shell
 docker-compose up
 ```
-### Остановка
+
+### Stopping
+
 ```shell
 docker-compose down
 ```
-Есть возможность дополнительной настройки использовав аргументы запуска.
-Например, для подключения к локальной бд:
+
+---
+
+It is possible to additionally configure app using the environment variables
 ```yaml
 environment:
-  ARGS: -config config.toml -log mylog.txt
+  POSTGRES_IP: 127.0.0.1 # подключение к локальной бд
+  EXCHANGER_SKIP: true # пропуск загрузки валют 
 ```
 
-## Курсы валют
+## Exchange Currencies
 
-Для обновления валют был выбран сервис https://www.currencyconverterapi.com (рабочий ключ уже в конфиге) 
+**Service:** `https://www.currencyconverterapi.com` (working key in the config)
 
-**Включение**: `config.toml`
+**Enabling**: `config.toml`
+
 ```toml
 [Exchange]
-Skip = false # true - отключить
+Skip = false # true - disable
 ```
-Бесплатная версия имеет ограничение **150 запросов в секунду**, настройки вынесены в отдельную структуру:
+
+Free version has limitation **150 requests per hour**, settings are placed in the structure:
+
 ```toml
 [Exchanger]
-Every=120 # Обновление каждые 2 минуты
-Endpoint="https://free.currconv.com/api/v7/convert"
-Key="b904b50e29877e8c38e0"
-Bases=["EUR","USD"]
+Every = 120 # Update every 2 minutes
+Endpoint = "https://free.currconv.com/api/v7/convert"
+Key = "b904b50e29877e8c38e0"
+Bases = ["EUR", "USD"]
 ```
-Для загрузки всех курсов (130 запросов):
+
+#### Load all available currencies (130 requests):
+
 ```toml
-Bases = [] # Или убрать поле
+Bases = [] # Or remove field
 ```
-Для пропуска загрузки (`true` по умолчанию):
+
+### Loading \ Writing to file
+
+#### With a successful launch the rates are saved in `currencies.json`
+
+---
+#### Skip api loading
+
 ```toml
-Skip = true # false - не пропускать
-```
-Отключить интервальные обновления:
-```shell
-./server -skip
-```
-### Загрузка \ Сохранение в файл
-**При удачном запуске курс сохраняется в `currencies.json`**
-
-Пропустить вызов API и загрузиться с файла:
-```shell
-./server -load
-```
-Задать нестандартный путь `.json`:
-```shell
-./server -curr my_currencies.json
+[Exchanger]
+Skip = false
+Load = true
 ```
 
+#### Set saving path:
 
+```toml
+[Exchanger]
+Skip = false
+Path = "saves/currencies.toml"
+```
 
-**Ручное добавление/обновление через `exchange.Add`**
+**You can add currency manually via `exchange.Add`**
+
 ```go
 exchange.Add("EUR", 92.39)
 ```
 
+## Tables structures
 
-## Структуры таблиц
-### balances: 
+### balances:
+
 ```mysql
-balance_id bigserial primary key -- айди баланса, можно изменить
-user_id bigint -- айди пользователя, можно изменить
-balance integer  -- баланс В КОПЕЙКАХ
+`balance_id` bigserial primary key -- balance id
+`user_id bigint` -- user id, can be changed
+`balance integer`  -- balance in cents
 ```
-### transactions: 
+
+### transactions:
+
 ```mysql
-transaction_id bigserial primary key -- айди транзакции
-balance_id bigint -- айди баланса получателя
-from_id bigint -- айди баланса отправителя, не NULL только в переводах
-action integer -- сумма изменения счета В КОПЕЙКАХ
-date timestamp -- дата транзакции
-description text -- описание транзакции
+`transaction_id` bigserial primary key -- transaction id
+`balance_id` bigint -- receiver balance id
+`from_id` bigint -- sender balance id, not NULL only in transfer operations
+`action` integer -- change in cents
+`date` timestamp -- transaction time
+`description` text -- transaction description
+    
+ FOREIGN KEY (balance_id, from_id) REFERENCES balances (balance_id)
 ```
----
-## Методы API
-### ~~Тесты~~: в разработке
-**Порт по умолчанию `8080`, Endpoint `http://localhost:8080/`**
 
 ---
 
-#### `200` Accepted - запрос успешно выполнен
+## API Methods
 
-#### `400` Bad Request - неверный формат входных данных
-#### `406` Not Acceptable - данные не найдены
-#### `422` Unprocessable Entity - запрос не может выполняться дальше с текущими входными значениями
+### ~~Тесты~~: in development
 
-#### `502` Internal Server Error - критическая ошибка (базы данных)
+**Default port `8080`, Endpoint `http://localhost:8080/`**
 
 ---
 
-### `/get` - получение баланса пользователя
-* Метод: `GET`
-* Успешный Status Code: `200 Accepted`
-#### 1. Стандартный запрос:
+#### `200` Accepted - request was proceeded successfully
+
+#### `400` Bad Request - wrong input data format
+
+#### `406` Not Acceptable - data was not found
+
+#### `422` Unprocessable Entity - request cannot be proceeded with current input data
+
+#### `502` Internal Server Error - CRITICAL DATABASE ERROR
+
+---
+
+### `/get` - Get User Balance
+
+* Method: `GET`
+
+#### 1. Default request:
 
 ```json5
 {
-   "user_id": 10 // Айди пользователя
+  "user_id": 10 // user Id
 }
 ```
-Ответ:
+
+Response:
+
 ```json5
 {
-    "ok": true,
-    "base": "RUB", // Валюта в которой представлен баланс
-    "balance": "111.00" // 111 рублей, НЕ в копейках
+  "ok": true,
+  "base": "RUB", // Currency
+  "balance": "111.00" // Balance NOT in cents
 }
 ```
+
 Возможная ошибка:
+
 ```json5
 {
-  "ok": false, // баланс с таким user_id не найден
+  "ok": false, // balance not found
   "str": "get balance: balance with user id 10 not found"
 }
 ```
 
-#### 2. С конвертацией в другую алюту:
+#### 2. Convert to another currency:
 
 ```json5
 {
-   "user_id": 10, // Айди пользователя
-   "base": "EUR"
+  "user_id": 10, // user id
+  "base": "EUR" // currency abbreviation
 }
 ```
-Ответ:
+
+Response:
+
 ```json5
 {
-    "ok": true,
-    "base": "EUR", // Валюта в которой представлен баланс
-    "balance": "1.20" // 1.20 евро, НЕ в копейках
+  "ok": true,
+  "base": "EUR", // Currency abbreviation
+  "rate": 80.12, // Currency rate
+  "balance": "1.20" // Balance NOT IN cents
 }
 ```
-#### Возможная ошибка:
+
+#### Possible error:
+
 ```json5
 {
-  "ok": false, // валюта не поддерживается
+  "ok": false, // Currency not available/supported
   "str": "base: abbreviation 'EUR' is not supported"
 }
 ```
+
 ---
-### `/change` - изменить баланс пользователя
-* Метод: `POST`
-* Успешный Status Code: `200 Accepted`
-#### 1. Стандартный запрос: Пополнение баланса
+
+### `/change` - deposit/withdraw user balance
+
+* Method: `POST`
+
+#### 1. Default request: Deposit
 
 ```json5
 {
-   "user_id": 10, // Айди пользователя
-   "change": 3000, // Сумма изменения баланса, В КОПЕЙКАХ
-   "decription": "вернуть через день" // описание транзакции
+  "user_id": 10, // user id
+  "change": 3000, // change amount IN CENTS
+  "decription": "salary" // transaction description
 }
 ```
-Ответ:
 
-**Если баланс с юзером не существует и `change > 0`, создается новый**
+Response:
 
-```json5
-{ "ok": true }
-```
-### 2. Снятие денег с баланса
+**If balance not exists and `change > 0`,  new balance will be created**
+
 ```json5
 {
-   "user_id": 10, // Айди пользователя
-   "change": -3000, // Сумма снятия, В КОПЕЙКАХ
-   "decription": "покупка хлеба" // описание транзакции
+  "ok": true
 }
 ```
-Ответ 
-```json5
-{ "ok": true }
-```
-#### Возможная ошибка:
+
+### 2. Withdraw 
+
 ```json5
 {
-  "ok": false, // если change < 0 и создается новый аккаунт
+  "user_id": 10, // user id
+  "change": -3000, // amount IN CENTS
+  "decription": "supermarket" // описание транзакции
+}
+```
+
+Ответ
+
+```json5
+{
+  "ok": true
+}
+```
+
+#### Possible errors:
+
+```json5
+{
+  "ok": false, // if change < 0 and balance not exist
   "str": "change balance: change (-10000) is below zero, balance creating is forbidden"
 }
 ```
 
 ---
 
-### `/transfer` - перевод денег между балансами
-* Метод: `POST`
-* Успешный Status Code: `200 Accepted`
-#### 1. Стандартный запрос:
+### `/transfer` - transfer money between balances
+
+* Method: `POST`
+
+#### 1. Default request:
+
 ```json5
 {
-  "to_id": 20, // user_id получателя
-  "from_id": 10, // user_id отправителя
-  "amount": 300, // сумма перевода В КОПЕЙКАХ > 0
-  "description": "вернул долг" // описание транзакции
+  "to_id": 20, // receiver user id
+  "from_id": 10, // sender user id
+  "amount": 300, // amount IN CENTS > 0
+  "description": "from Mark" // transaction description
 }
 ```
-**Если баланса с юзером `to_id` не существует, создается новый**
 
-#### Возможные ошибки:
+**If balance `to_id` not exist, new balance will be created**
+
+#### Possible errors:
+
 ```json5
 {
-  "ok": false, // from_id не хватает средств для перевода
+  "ok": false, // from_id has not enough money
   "str": "transfer: insufficient funds: missing 92.00"
 }
 ```
+
 ---
 
-### `/view` - просмотр транзакций пользователя
-* Метод: `GET`
-* Успешный Status Code: `200 Accepted`
-#### 1. Стандартный запрос:
+### `/view` - view user transaction
+
+* Method: `GET`
+
+#### 1. Default request:
+
 ```json5
 {
-  "user_id": 10, // Айди пользователя
-  "sort": "DATE_DESC", // Тип сортировки
-  "limit": 100 // Количество транзакций
+  "user_id": 10, // user id
+  "sort": "DATE_DESC", // sorting type
+  "limit": 100 // output size
 }
 ```
-**Поддерживаемые типы сортировки:**
+
+**Supporting sorting types:**
+
 ```json5
-"DATE_DESC": От старых транзакций до новых
-"DATE_ASC": От новых до старых
-"SUM_DESC": От больших сделок до маленьких
-"SUM_ASC": От маленьких до больших
+"DATE_DESC": From older to newer
+"DATE_ASC": From newer to older
+"SUM_DESC": From biggest transactions to lowest
+"SUM_ASC": From lowest transactions to biggest
 ```
-Ответ (вывод сокращен):
+
+Response (output abbreviated):
+
 ```json5
 {
   "ok": true,
   "transactions": [
     {
-      "transaction_id": 8, // Айди транзакции
-      "balance_id": 1, // Айди баланса
-      "from_id": "12", // Перевод получен от balance_id 12
-      "action": 2000, // Сумма перевода В КОПЕЙКАХ
-      "date": "2022-04-06T09:31:05+03:00", // Время и дата транзакции
-      "description": "долг" // Описание транзакции 
+      "transaction_id": 8, // transaction id
+      "balance_id": 1, // balance id
+      "from_id": "12", // sender balance id
+      "action": 2000, // amount IN CENTS
+      "date": "2022-04-06T09:31:05+03:00", // transaction date
+      "description": "долг" // transaction description
     },
     {
-      "transaction_id": 7, // Айди транзакции
-      "balance_id": 1, // Айди баланса
-      "from_id": "",  // Простое зачисление ИЛИ снятие
-      "action": -10000, // Сумма изменения В КОПЕЙКАХ
-      "date": "2022-04-05T19:46:32+03:00", // Время и дата транзакции
-      "description": "долг" // Описание транзакции 
+      "transaction_id": 7, 
+      "balance_id": 1, 
+      "from_id": "", // this is not transfer
+      "action": -10000, 
+      "date": "2022-04-05T19:46:32+03:00", 
+      "description": "долг" 
     }
   ]
 }
 ```
-Если транзакций не было, но баланс создан:
+
+If there are no transactions, but balance exists:
+
 ```json5
 {
   "ok": true,
   "transactions": null
 }
 ```
-### 2. Пагинация (сдвиг)
+
+### 2. Pagination (offset)
+
 ```json5
 {
-  "user_id": 10, // Айди пользователя
-  "sort": "SUM_ASC", // Тип сортировки
-  "limit": 100, // Количество транзакций
-  "offset": 2 // сдвиг вывода
+  "user_id": 10, // user id
+  "sort": "SUM_ASC", // sorting type
+  "limit": 100, // output size
+  "offset": 2 // output offset
 }
 ```
-Ответ идентичен с прошлым запросом, но с выполнением сдвига на 2 транзакции
 
-#### Возможные ошибки
+Response is the same as previous request, but with offset in 2 transactions
+
+#### Possible errors
+
 ```json5
 {
-  "ok": false, // Баланс с user_id 10 не найден
+  "ok": false, // balance not found
   "str": "get transfers: get balance (id 10): balance with user id 10 not found"
 }
 ```
 
+### `/switch` - change balance user id
 
-### `/switch` - передача баланса другому пользователю
-* Метод: `POST`
-* Успешный Status Code: `200 Accepted`
-#### Запрос:
+* Method: `POST`
+
+#### Request:
+
 ```json5
 {
-  "old_user_id": 10, // id прошлого владельца
-  "new_user_id": 12 // id нового владельца
+  "old_user_id": 10, // old user id
+  "new_user_id": 12 // new user id
 }
 ```
-#### Ошибки:
-Если баланс нового владельца уже существует
+
+#### Possible Errors:
+
+If balance with new user id already exists
 ```json5
 {
-  "ok": false, // баланс с user_id 12 уже есть, для передачи можно удалить через /delete
+  "ok": false,
   "str": "db.Switch(old 10 - new 12): balance with user_id 12 already exists"
 }
 ```
 
-## TODO:
-1. Тесты SQL методов и самой API
+---
+
+## Old branches:
+* ### [FastHTTP router](https://github.com/illiafox/autumn-2021-intern-assignment/tree/fasthttp)
+* ### [MySQL version](https://github.com/illiafox/autumn-2021-intern-assignment/tree/mysql)

@@ -4,14 +4,13 @@ import (
 	"context"
 	"encoding/json"
 	"errors"
+	"fmt"
 	"net/http"
 	"strconv"
 
-	"autumn-2021-intern-assignment/database"
 	"autumn-2021-intern-assignment/exchange"
 	"autumn-2021-intern-assignment/public"
 	"github.com/shopspring/decimal"
-	"github.com/valyala/fasthttp"
 )
 
 type getJSON struct {
@@ -20,37 +19,39 @@ type getJSON struct {
 }
 
 type getRetJSON struct {
-	Ok      bool   `json:"ok"`
-	Base    string `json:"base"`
-	Balance string `json:"balance"`
+	Ok      bool    `json:"ok"`
+	Base    string  `json:"base"`
+	Rate    float64 `json:"rate,omitempty"`
+	Balance string  `json:"balance"`
 }
 
-func Get(db *database.DB, ctx *fasthttp.RequestCtx) {
+func (m Methods) Get(w http.ResponseWriter, r *http.Request) {
 	var get getJSON
 
-	err := json.Unmarshal(ctx.PostBody(), &get)
+	err := json.NewDecoder(r.Body).Decode(&get)
 	if err != nil {
-		ctx.SetStatusCode(http.StatusBadRequest)
-		jsonError(ctx, "decoding json: %w", err)
+
+		w.WriteHeader(http.StatusBadRequest)
+		EncodeError(w, fmt.Errorf("decoding json: %w", err))
 
 		return
 	}
 
 	if get.User <= 0 {
-		ctx.SetStatusCode(http.StatusBadRequest)
-		jsonError(ctx, "wrong 'user' field value: %d", get.User)
+		w.WriteHeader(http.StatusBadRequest)
+		EncodeError(w, fmt.Errorf("wrong 'user' field value: %d", get.User))
 
 		return
 	}
 
-	balance, _, err := db.GetBalance(context.Background(), get.User)
+	balance, _, err := m.db.GetBalance(context.Background(), get.User)
 	if err != nil {
 		if errors.As(err, public.ErrInternal) {
-			ctx.SetStatusCode(http.StatusInternalServerError)
+			w.WriteHeader(http.StatusInternalServerError)
 		} else {
-			ctx.SetStatusCode(http.StatusNotAcceptable)
+			w.WriteHeader(http.StatusNotAcceptable)
 		}
-		jsonError(ctx, "get balance: %w", err)
+		EncodeError(w, fmt.Errorf("get balance: %w", err))
 
 		return
 	}
@@ -60,12 +61,12 @@ func Get(db *database.DB, ctx *fasthttp.RequestCtx) {
 	if get.Base != "" {
 		ex, ok := exchange.GetExchange(get.Base)
 		if !ok {
-			ctx.SetStatusCode(http.StatusNotAcceptable)
-			jsonError(ctx, "base: abbreviation '%s' is not supported", get.Base)
+			w.WriteHeader(http.StatusNotAcceptable)
+			EncodeError(w, fmt.Errorf("base: abbreviation '%s' is not supported", get.Base))
 
 			return
 		}
-
+		ret.Rate = ex
 		ret.Balance = decimal.NewFromFloat(float64(balance) / 100).Div(decimal.NewFromFloat(ex)).StringFixed(2)
 	} else {
 		get.Base = "RUB"
@@ -74,13 +75,11 @@ func Get(db *database.DB, ctx *fasthttp.RequestCtx) {
 
 	ret.Base = get.Base
 
-	data, err := json.Marshal(ret)
+	err = json.NewEncoder(w).Encode(ret)
 	if err != nil {
-		ctx.SetStatusCode(http.StatusInternalServerError)
-		jsonError(ctx, "encoding json: %w", err)
+		w.WriteHeader(http.StatusInternalServerError)
+		EncodeError(w, fmt.Errorf("encoding json: %w", err))
 
 		return
 	}
-
-	ctx.Write(data)
 }

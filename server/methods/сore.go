@@ -2,17 +2,26 @@ package methods
 
 import (
 	"encoding/json"
-	"fmt"
 	"io"
+
+	"autumn-2021-intern-assignment/database/model"
 )
+
+type Methods struct {
+	db model.Repository
+}
+
+func New(db model.Repository) *Methods {
+	return &Methods{db: db}
+}
 
 type errJSON struct {
 	Ok  bool   `json:"ok"`
 	Err string `json:"err,omitempty"`
 }
 
-func jsonError(writer io.Writer, format string, a ...interface{}) (int, error) {
-	str := fmt.Errorf(format, a...).Error()
+func EncodeError(writer io.Writer, err error) (int, error) {
+	str := err.Error()
 
 	buf, err := json.Marshal(errJSON{
 		Ok:  false,
@@ -26,7 +35,7 @@ func jsonError(writer io.Writer, format string, a ...interface{}) (int, error) {
 	return writer.Write(buf)
 }
 
-func jsonErrorString(writer io.Writer, str string) (int, error) {
+func EncodeString(writer io.Writer, str string) (int, error) {
 	buf, err := json.Marshal(errJSON{
 		Ok:  false,
 		Err: str,
@@ -39,8 +48,4 @@ func jsonErrorString(writer io.Writer, str string) (int, error) {
 	return writer.Write(buf)
 }
 
-var successBytes = []byte("{\"ok\":true}")
-
-func jsonSuccess(writer io.Writer) (int, error) {
-	return writer.Write(successBytes)
-}
+var success = []byte("{\"ok\":true}")

@@ -3,10 +3,9 @@ version: '3.3'
 services:
   postgres:
     image: 'postgres:latest'
+    container_name: postgres
     volumes:
-      - data:/var/lib/postgresql/data
-      - "./sql/migrate-up.sql:/docker-entrypoint-initdb.d/migrate-up.sql"
-    restart: always
+      - "./migrate/up/*.up.sql:/docker-entrypoint-initdb.d/"
 
     networks:
       - hosts
@@ -14,19 +13,22 @@ services:
       POSTGRES_DB: avito
       POSTGRES_USER: server
       POSTGRES_PASSWORD: M5F3wWtFxkQ8Ra4n
+
   server:
+    restart: always
+
     build: .
+    container_name: server
+
     ports:
       - "8080:8080"
     depends_on:
       - postgres
     environment:
       POSTGRES_IP: postgres
-      ARGS: -env
+      ARGS: -env -http
     networks:
       - hosts
 networks:
   hosts:
     driver: "bridge"
-volumes:
-  data:

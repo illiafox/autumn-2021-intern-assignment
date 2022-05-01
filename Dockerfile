@@ -1,5 +1,5 @@
 # build stage
-FROM golang:1.18-alpine AS build-env
+FROM golang:1.18.1-alpine AS build-env
 RUN apk --no-cache add build-base git curl
 ADD . /server
 RUN cd /server/cmd/app && go build -o bin
@@ -8,5 +8,6 @@ RUN cd /server/cmd/app && go build -o bin
 FROM alpine
 WORKDIR /app
 COPY --from=build-env /server/cmd/app/bin /app/bin
+COPY --from=build-env /server/cmd/app/cert /app/cert
 COPY --from=build-env /server/cmd/app/config.toml /app/config.toml
-ENTRYPOINT ./bin $ARGS
+ENTRYPOINT "./bin" $ARGS

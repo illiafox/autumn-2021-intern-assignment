@@ -1,51 +1,64 @@
 package exchange
 
 import (
-	"fmt"
-	"log"
 	"time"
 
 	"autumn-2021-intern-assignment/utils/config"
+	"go.uber.org/zap"
 )
 
-func UpdateWithLoad(conf config.Exchanger, currPath string, skip, load bool) {
-	if !load {
-		log.Println("Currencies Update started")
-		err := Update(conf)
-		log.Println("Currencies Update done")
-		if err != nil {
-			log.Println(fmt.Errorf("updating currencies: %w", err))
+func UpdateWithLoad(conf config.Exchanger, logger *zap.Logger) {
 
-			err = Load(currPath)
-			if err != nil {
-				log.Println(fmt.Errorf("load currencies: %w", err))
-			} else {
-				log.Println("Currencies were loaded from file")
-			}
-		} else {
-			err = Store(currPath)
-			if err != nil {
-				log.Println(fmt.Errorf("store currencies: %w", err))
-			}
-		}
-		if !skip {
-			go func() {
-				for {
-					time.Sleep(time.Second * time.Duration(conf.Every))
-					err = Update(conf)
-					if err != nil {
-						log.Println(fmt.Errorf("updating currencies: %w", err))
-						err = Update(conf)
-					}
-				}
-			}()
-		}
-	} else {
-		err := Load(currPath)
+	Add("RUB", 1)
+
+	if conf.Skip {
+		return
+	}
+
+	if conf.Load {
+		err := Load(conf.Path)
 		if err != nil {
-			log.Println(fmt.Errorf("load currencies: %w", err))
+			logger.Error("loading currencies", zap.Error(err))
 		} else {
-			log.Println("Currencies were loaded from file")
+			logger.Info("Done")
+		}
+
+		return
+	}
+
+	logger.Info("Currencies Update started")
+	t := time.Now()
+	err := Update(conf)
+
+	if err != nil {
+		logger.Error("updating currencies", zap.Duration("execution", time.Since(t)), zap.Error(err))
+
+		logger.Info("loading from file")
+
+		err = Load(conf.Path)
+		if err != nil {
+			logger.Error("loading currencies", zap.Error(err))
+		} else {
+			logger.Info("Done")
+		}
+
+	} else {
+		logger.Info("Done", zap.Duration("execution", time.Since(t)))
+
+		err = Store(conf.Path)
+		if err != nil {
+			logger.Error("writing currencies to file", zap.Error(err))
 		}
 	}
+
+	go func() {
+		for {
+			time.Sleep(time.Second * time.Duration(conf.Every))
+			err = Update(conf)
+			if err != nil {
+				logger.Error("updating currencies", zap.Error(err))
+			}
+		}
+	}()
+
 }
