@@ -37,16 +37,16 @@ go build -o server
 ./server
 ```
 
-#### С нестандартными путями к конфиг и лог файлу
+#### С нестандартными путями к конфигу и лог файлу
 
 ```shell
 server -confing config.toml -log log.txt
 ```
 
-#### Со чтением `environment` переменных:
+#### С чтением `environment` переменных:
 
 Доступные значения можно посмотреть в
-**[тегах структуры](https://github.com/illiafox/autumn-2021-intern-assignment/blob/master/utils/config/struct.go#L3:L25)** конфига
+**[тегах структуры](https://github.com/illiafox/autumn-2021-intern-assignment/blob/master/utils/config/erruct.go#L3:L25)** конфига
 
 ```shell
 POSTGRES_PORT=4585 server -env
@@ -68,13 +68,26 @@ docker-compose up
 docker-compose down
 ```
 
-Есть возможность дополнительной настройки использовав аргументы запуска
+Есть возможность дополнительной настройки, используя аргументы запуска
 
 ```yaml
 environment:
   POSTGRES_IP: 127.0.0.1 # подключение к локальной бд
   EXCHANGER_SKIP: true # пропуск загрузки валют 
 ```
+
+## Логи
+Кроме вывода в терминал, логи также пишутся в файл
+```shell
+# Терминал
+01/05/2022 14:54:38     info    Initializing database
+```
+
+```json5
+// Файл (log.txt по-умолчанию)
+{"level":"info","ts":"Sun, 01 May 2022 14:54:38 EEST","msg":"Initializing database"}
+```
+
 
 ## Курсы валют
 
@@ -131,6 +144,9 @@ Path = "saves/currencies.toml"
 ```go
 exchange.Add("EUR", 92.39)
 ```
+
+
+
 
 ## Структуры таблиц
 
@@ -204,7 +220,7 @@ exchange.Add("EUR", 92.39)
 ```json5
 {
   "ok": false, // баланс с таким user_id не найден
-  "str": "get balance: balance with user id 10 not found"
+  "err": "get balance: balance with user id 10 not found"
 }
 ```
 
@@ -233,7 +249,7 @@ exchange.Add("EUR", 92.39)
 ```json5
 {
   "ok": false, // валюта не поддерживается
-  "str": "base: abbreviation 'EUR' is not supported"
+  "err": "base: abbreviation 'EUR' is not supported"
 }
 ```
 
@@ -286,7 +302,7 @@ exchange.Add("EUR", 92.39)
 ```json5
 {
   "ok": false, // если change < 0 и создается новый аккаунт
-  "str": "change balance: change (-10000) is below zero, balance creating is forbidden"
+  "err": "change balance: change (-10000) is below zero, balance creating is forbidden"
 }
 ```
 
@@ -314,7 +330,7 @@ exchange.Add("EUR", 92.39)
 ```json5
 {
   "ok": false, // from_id не хватает средств для перевода
-  "str": "transfer: insufficient funds: missing 92.00"
+  "err": "transfer: insufficient funds: missing 92.00"
 }
 ```
 
@@ -397,7 +413,7 @@ exchange.Add("EUR", 92.39)
 ```json5
 {
   "ok": false, // Баланс с user_id 10 не найден
-  "str": "get transfers: get balance (id 10): balance with user id 10 not found"
+  "err": "get transfers: get balance (id 10): balance with user id 10 not found"
 }
 ```
 
@@ -421,7 +437,7 @@ exchange.Add("EUR", 92.39)
 ```json5
 {
   "ok": false, // баланс с user_id 12 уже есть, для передачи можно удалить через /delete
-  "str": "db.Switch(old 10 - new 12): balance with user_id 12 already exists"
+  "err": "db.Switch(old 10 - new 12): balance with user_id 12 already exists"
 }
 ```
 

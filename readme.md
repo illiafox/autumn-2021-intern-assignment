@@ -52,7 +52,7 @@ POSTGRES_PORT=4585 server -env
 
 ## docker-compose
 
-**API starts** immediately after containers upping
+**API starts** immediately after containers are up
 
 ```shell
 docker-compose up
@@ -66,12 +66,26 @@ docker-compose down
 
 ---
 
-It is possible to additionally configure app using the environment variables
+It is possible to additionally configure the app using environment variables
 ```yaml
 environment:
-  POSTGRES_IP: 127.0.0.1 # подключение к локальной бд
-  EXCHANGER_SKIP: true # пропуск загрузки валют 
+  POSTGRES_IP: 127.0.0.1 # connect to local database
+  EXCHANGER_SKIP: true # skip currency loading
 ```
+
+## Logs
+In addition to the terminal output, logs are also written to the file
+```shell
+# Terminal
+01/05/2022 14:54:38     info    Initializing database
+```
+
+```json5
+// File (default log.txt)
+{"level":"info","ts":"Sun, 01 May 2022 14:54:38 EEST","msg":"Initializing database"}
+```
+
+
 
 ## Exchange Currencies
 
@@ -84,7 +98,7 @@ environment:
 Skip = false # true - disable
 ```
 
-Free version has limitation **150 requests per hour**, settings are placed in the structure:
+The free version has a limitation of **150 requests per hour**,the settings are placed in the structure:
 
 ```toml
 [Exchanger]
@@ -102,7 +116,7 @@ Bases = [] # Or remove field
 
 ### Loading \ Writing to file
 
-#### With a successful launch the rates are saved in `currencies.json`
+#### If the loading is successfull, the rates are saved in `currencies.json`
 
 ---
 #### Skip api loading
@@ -121,7 +135,7 @@ Skip = false
 Path = "saves/currencies.toml"
 ```
 
-**You can add currency manually via `exchange.Add`**
+**You can add currencies manually via `exchange.Add`**
 
 ```go
 exchange.Add("EUR", 92.39)
@@ -154,7 +168,7 @@ exchange.Add("EUR", 92.39)
 
 ## API Methods
 
-### ~~Тесты~~: in development
+### ~~Tests~~: in development
 
 **Default port `8080`, Endpoint `http://localhost:8080/`**
 
@@ -180,7 +194,7 @@ exchange.Add("EUR", 92.39)
 
 ```json5
 {
-  "user_id": 10 // user Id
+  "user_id": 10 // user id
 }
 ```
 
@@ -190,16 +204,16 @@ Response:
 {
   "ok": true,
   "base": "RUB", // Currency
-  "balance": "111.00" // Balance NOT in cents
+  "balance": "111.00" // Balance NOT IN CENTS
 }
 ```
 
-Возможная ошибка:
+Possible errors:
 
 ```json5
 {
   "ok": false, // balance not found
-  "str": "get balance: balance with user id 10 not found"
+  "err": "get balance: balance with user id 10 not found"
 }
 ```
 
@@ -228,7 +242,7 @@ Response:
 ```json5
 {
   "ok": false, // Currency not available/supported
-  "str": "base: abbreviation 'EUR' is not supported"
+  "err": "base: abbreviation 'EUR' is not supported"
 }
 ```
 
@@ -250,7 +264,7 @@ Response:
 
 Response:
 
-**If balance not exists and `change > 0`,  new balance will be created**
+**If balance does not exists and `change > 0`,  new balance will be created**
 
 ```json5
 {
@@ -281,7 +295,7 @@ Response:
 ```json5
 {
   "ok": false, // if change < 0 and balance not exist
-  "str": "change balance: change (-10000) is below zero, balance creating is forbidden"
+  "err": "change balance: change (-10000) is below zero, balance creating is forbidden"
 }
 ```
 
@@ -302,14 +316,14 @@ Response:
 }
 ```
 
-**If balance `to_id` not exist, new balance will be created**
+**If balance `to_id` does not exist, new balance will be created**
 
 #### Possible errors:
 
 ```json5
 {
   "ok": false, // from_id has not enough money
-  "str": "transfer: insufficient funds: missing 92.00"
+  "err": "transfer: insufficient funds: missing 92.00"
 }
 ```
 
@@ -329,7 +343,7 @@ Response:
 }
 ```
 
-**Supporting sorting types:**
+**Sorting types supported:**
 
 ```json5
 "DATE_DESC": From older to newer
@@ -384,14 +398,14 @@ If there are no transactions, but balance exists:
 }
 ```
 
-Response is the same as previous request, but with offset in 2 transactions
+The response is the same as the in previous request, but with offset in 2 transactions
 
 #### Possible errors
 
 ```json5
 {
   "ok": false, // balance not found
-  "str": "get transfers: get balance (id 10): balance with user id 10 not found"
+  "err": "get transfers: get balance (id 10): balance with user id 10 not found"
 }
 ```
 
@@ -414,7 +428,7 @@ If balance with new user id already exists
 ```json5
 {
   "ok": false,
-  "str": "db.Switch(old 10 - new 12): balance with user_id 12 already exists"
+  "err": "db.Switch(old 10 - new 12): balance with user_id 12 already exists"
 }
 ```
 
