@@ -7,7 +7,10 @@ CREATE TABLE IF NOT EXISTS transactions
     date           timestamp not null,
     description    text,
     CONSTRAINT fk
-        FOREIGN KEY (balance_id, from_id) REFERENCES balances (balance_id)
+        FOREIGN KEY (balance_id) REFERENCES balances (balance_id)
+            ON DELETE RESTRICT
+            ON UPDATE CASCADE,
+        FOREIGN KEY (from_id) REFERENCES balances (balance_id)
             ON DELETE RESTRICT
             ON UPDATE CASCADE
 );

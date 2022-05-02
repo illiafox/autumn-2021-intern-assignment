@@ -3,6 +3,7 @@ package methods
 import (
 	"context"
 	"fmt"
+	"github.com/jackc/pgx/v4"
 	"time"
 
 	"autumn-2021-intern-assignment/public"
@@ -30,23 +31,12 @@ func (sql Methods) Transfer(ctx context.Context, fromID, toID, amount int64, des
 
 	var receiver, receiverID int64
 
-	rows, err := tx.Query(ctx, "SELECT balance,balance_id FROM balances WHERE user_id = $1 FOR UPDATE", toID)
+	err = tx.QueryRow(ctx, "SELECT balance,balance_id FROM balances WHERE user_id = $1 FOR UPDATE", toID).
+		Scan(&receiver, &receiverID)
+
 	if err != nil {
-		return public.NewInternal(fmt.Errorf("get balance: query: %w", err))
-	}
-	defer rows.Close()
-
-	if rows.Next() { // If balance is found
-		err = rows.Scan(&receiver, &receiverID)
-		if err != nil {
-			return public.NewInternal(fmt.Errorf("get balance: scan: %w", err))
-		}
-
-	} else { // Create new account
-
-		err = rows.Err()
-		if err != nil {
-			return public.NewInternal(fmt.Errorf("rows: %w", err))
+		if err != pgx.ErrNoRows {
+			return public.NewInternal(fmt.Errorf("get balance: query: %w", err))
 		}
 
 		err = tx.QueryRow(

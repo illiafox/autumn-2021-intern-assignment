@@ -5,32 +5,47 @@ import (
 	types "database/sql"
 	"fmt"
 	"strconv"
+	"strings"
 
 	"autumn-2021-intern-assignment/database/model"
 	"autumn-2021-intern-assignment/public"
 )
 
-var sorts = map[string]string{
-	"DATE_DESC": "SELECT * FROM transactions WHERE balance_id = $1 ORDER BY date DESC LIMIT $2 OFFSET $3",
-	"DATE_ASC":  "SELECT * FROM transactions WHERE balance_id = $1 ORDER BY date ASC LIMIT $2 OFFSET $3",
-	"SUM_DESC":  "SELECT * FROM transactions WHERE balance_id = $1 ORDER BY action DESC LIMIT $2 OFFSET $3",
-	"SUM_ASC":   "SELECT * FROM transactions WHERE balance_id = $1 ORDER BY action ASC LIMIT $2 OFFSET $3",
-}
+var (
+	sorts = map[string]string{
+		"DATE_DESC": "date DESC",
+		"DATE_ASC":  "date ASC",
+		"SUM_DESC":  "action DESC",
+		"SUM_ASC":   "action ASC",
+	}
 
-func (sql Methods) GetTransfers(ctx context.Context, userID, offset, limit int64, sort string) ([]model.Transaction, error) {
+	available = "sort '%s' not supported, available: " + func() string {
+		keys := make([]string, 0, len(sorts))
+		for k := range sorts {
+			keys = append(keys, k)
+		}
+
+		return strings.Join(keys, " ")
+	}()
+)
+
+func (sql Methods) GetTransfers(ctx context.Context, userID, offset, limit int64,
+	sort string) ([]model.Transaction, error) {
+
+	order, ok := sorts[sort]
+	if !ok {
+		return nil, fmt.Errorf(available, sort)
+	}
 
 	_, balanceID, err := sql.GetBalance(ctx, userID)
 	if err != nil {
 		return nil, public.NewInternal(fmt.Errorf("get balance (id %d): %w", userID, err))
 	}
 
-	command, ok := sorts[sort]
+	rows, err := sql.conn.Query(ctx,
+		"SELECT * FROM transactions WHERE balance_id = $1 ORDER BY "+order+" LIMIT $2 OFFSET $3",
+		balanceID, limit, offset)
 
-	if !ok {
-		return nil, fmt.Errorf("sort %s not supported", sort)
-	}
-
-	rows, err := sql.conn.Query(ctx, command, balanceID, limit, offset)
 	if err != nil {
 		return nil, public.NewInternal(fmt.Errorf("select query: %w", err))
 	}

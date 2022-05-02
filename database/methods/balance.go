@@ -20,28 +20,18 @@ func New(conn *pgxpool.Pool) Methods {
 
 func (sql Methods) GetBalance(ctx context.Context, userID int64) (balance, balanceID int64, err error) {
 
-	rows, err := sql.conn.Query(ctx, "SELECT balance,balance_id FROM balances WHERE user_id = $1", userID)
+	err = sql.conn.QueryRow(ctx, "SELECT balance,balance_id FROM balances WHERE user_id = $1", userID).
+		Scan(&balance, &balanceID)
 
 	if err != nil {
-		return -1, -1, public.NewInternal(fmt.Errorf("query: %w", err))
-	}
-	defer rows.Close()
-
-	if rows.Next() { // If balance is found
-		err = rows.Scan(&balance, &balanceID)
-		if err != nil {
-			return -1, -1, public.NewInternal(fmt.Errorf("scan: %w", err))
+		if err != pgx.ErrNoRows {
+			return -1, -1, public.NewInternal(fmt.Errorf("query: %w", err))
 		}
 
-		return
+		return -1, -1, fmt.Errorf("balance with user id %d not found", userID)
 	}
 
-	err = rows.Err()
-	if err != nil {
-		return -1, -1, public.NewInternal(fmt.Errorf("rows: %w", err))
-	}
-
-	return -1, -1, fmt.Errorf("balance with user id %d not found", userID)
+	return
 }
 
 func (sql Methods) ChangeBalance(ctx context.Context, userID, change int64, description string) error {
@@ -52,24 +42,14 @@ func (sql Methods) ChangeBalance(ctx context.Context, userID, change int64, desc
 	}
 	defer t.Rollback(ctx)
 
-	rows, err := t.Query(ctx, "SELECT balance,balance_id FROM balances WHERE user_id = $1 FOR UPDATE", userID)
-	if err != nil {
-		return public.NewInternal(fmt.Errorf("get balance: query: %w", err))
-	}
-	defer rows.Close()
 	var balance, balanceID int64
 
-	if rows.Next() { // If balance is found
-		err = rows.Scan(&balance, &balanceID)
-		if err != nil {
-			return public.NewInternal(fmt.Errorf("get balance: scan: %w", err))
-		}
+	err = t.QueryRow(ctx, "SELECT balance,balance_id FROM balances WHERE user_id = $1 FOR UPDATE", userID).
+		Scan(&balance, &balanceID)
 
-		balance += change
-	} else { // Create new account
-		err = rows.Err()
-		if err != nil {
-			return public.NewInternal(fmt.Errorf("rows: %w", err))
+	if err != nil {
+		if err != pgx.ErrNoRows {
+			return public.NewInternal(fmt.Errorf("get balance: query: %w", err))
 		}
 
 		if change < 0 {
@@ -90,6 +70,8 @@ func (sql Methods) ChangeBalance(ctx context.Context, userID, change int64, desc
 
 		goto final
 	}
+
+	balance += change
 
 	if balance < 0 {
 		return fmt.Errorf("insufficient funds: missing %.2f", float64(-balance)/100)
@@ -122,26 +104,16 @@ final:
 }
 
 func (Methods) GetBalanceForUpdate(ctx context.Context, db pgx.Tx, userID int64) (balance, balanceID int64, err error) {
-	rows, err := db.Query(ctx, "SELECT balance,balance_id FROM balances WHERE user_id = $1", userID)
+	err = db.QueryRow(ctx, "SELECT balance,balance_id FROM balances WHERE user_id = $1", userID).
+		Scan(&balance, &balanceID)
 
 	if err != nil {
-		return -1, -1, public.NewInternal(fmt.Errorf("query: %w", err))
-	}
-	defer rows.Close()
-
-	if rows.Next() { // If balance is found
-		err = rows.Scan(&balance, &balanceID)
-		if err != nil {
-			return -1, -1, public.NewInternal(fmt.Errorf("scan: %w", err))
+		if err != pgx.ErrNoRows {
+			return -1, -1, public.NewInternal(fmt.Errorf("query: %w", err))
 		}
 
-		return
+		return -1, -1, fmt.Errorf("balance with user id %d not found", userID)
 	}
 
-	err = rows.Err()
-	if err != nil {
-		return -1, -1, public.NewInternal(fmt.Errorf("rows: %w", err))
-	}
-
-	return -1, -1, fmt.Errorf("balance with user id %d not found", userID)
+	return
 }
