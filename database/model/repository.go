@@ -18,9 +18,6 @@ type Repository interface {
 	Switch(ctx context.Context, oldUserID, newUserID int64) error
 }
 
-type Methods interface {
-}
-
 type Transaction struct {
 	TransactionID int64            `json:"transaction_id"`
 	BalanceID     int64            `json:"balance_id"`
