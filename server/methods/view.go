@@ -3,7 +3,6 @@ package methods
 import (
 	"context"
 	"encoding/json"
-	"errors"
 	"fmt"
 	"net/http"
 
@@ -66,7 +65,7 @@ func (m Methods) View(w http.ResponseWriter, r *http.Request) {
 
 	trans, err := m.db.GetTransfers(ctx, view.User, view.Offset, view.Limit, view.Sort)
 	if err != nil {
-		if errors.As(err, public.ErrInternal) {
+		if public.AsInternal(err) {
 			w.WriteHeader(http.StatusInternalServerError)
 		} else {
 			w.WriteHeader(http.StatusUnprocessableEntity)

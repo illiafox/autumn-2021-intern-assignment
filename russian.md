@@ -88,6 +88,28 @@ environment:
 {"level":"info","ts":"Sun, 01 May 2022 14:54:38 EEST","msg":"Initializing database"}
 ```
 
+---
+
+## Тесты базы данных
+
+### 1. Создайте новую бд и таблицы через миграцию
+
+### 2. Запустите:
+
+```shell
+POSTGRES_DATABASE=avito_test go test
+```
+
+#### Тесты запустятся при условии, что таблица пуста
+
+#### Таблицы очистятся автоматически
+
+--- 
+### Тесты API: скоро
+
+---
+
+
 
 ## Курсы валют
 
@@ -167,15 +189,11 @@ exchange.Add("EUR", 92.39)
 `action` integer -- сумма изменения счета В КОПЕЙКАХ
 `date` timestamp -- дата транзакции
 `description` text -- описание транзакции
-    
- FOREIGN KEY (balance_id, from_id) REFERENCES balances (balance_id)
 ```
 
 ---
 
 ## Методы API
-
-### ~~Тесты~~: в разработке
 
 **Порт по умолчанию `8080`, Endpoint `http://localhost:8080/`**
 
@@ -265,7 +283,7 @@ exchange.Add("EUR", 92.39)
 {
   "user_id": 10, // Айди пользователя
   "change": 3000, // Сумма изменения баланса, В КОПЕЙКАХ
-  "decription": "вернуть через день" // описание транзакции
+  "description": "вернуть через день" // описание транзакции
 }
 ```
 
@@ -285,7 +303,7 @@ exchange.Add("EUR", 92.39)
 {
   "user_id": 10, // Айди пользователя
   "change": -3000, // Сумма снятия, В КОПЕЙКАХ
-  "decription": "покупка хлеба" // описание транзакции
+  "description": "покупка хлеба" // описание транзакции
 }
 ```
 
@@ -436,12 +454,41 @@ exchange.Add("EUR", 92.39)
 
 ```json5
 {
-  "ok": false, // баланс с user_id 12 уже есть, для передачи можно удалить через /delete
+  "ok": false, // баланс с user_id 12 уже есть, для передачи можно удалить через /del
   "err": "db.Switch(old 10 - new 12): balance with user_id 12 already exists"
 }
 ```
 
 ---
+
+### `/delete` - удалить баланс
+
+#### Транзакции не будут удалены
+
+* Метод: `POST`
+
+#### Запрос::
+
+```json5
+{
+  "user_id": 10, // user id
+}
+```
+
+#### Возможная ошибка:
+
+```json5
+{
+  "ok": false, // баланс не найдет
+  "err": "delete balance: balance with user id 10 not found"
+}
+```
+
+
+
+---
+
+
 
 ## Старые версии:
 * ### [FastHTTP router](https://github.com/illiafox/autumn-2021-intern-assignment/tree/fasthttp)

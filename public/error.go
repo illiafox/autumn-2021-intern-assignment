@@ -1,5 +1,7 @@
 package public
 
+import "errors"
+
 type InternalError struct {
 	err error
 }
@@ -14,5 +16,9 @@ func NewInternal(err error) error {
 
 // ErrInternal is used to verify NewInternal error
 //
-// errors.As(err, public.ErrInternal)
-var ErrInternal = &InternalError{}
+// public.AsInternal(err)
+var errCheck = &InternalError{}
+
+func AsInternal(err error) bool {
+	return errors.As(err, errCheck)
+}

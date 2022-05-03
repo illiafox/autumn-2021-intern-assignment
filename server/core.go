@@ -20,6 +20,7 @@ func New(db model.Repository, conf config.Host) *http.Server {
 	router.HandleFunc("/transfer", m.Transfer)
 	router.HandleFunc("/view", m.View)
 	router.HandleFunc("/switch", m.Switch)
+	router.HandleFunc("/delete", m.Delete)
 
 	router.Handle("/metrics", promhttp.Handler())
 	//

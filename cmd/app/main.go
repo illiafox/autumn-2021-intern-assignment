@@ -117,7 +117,7 @@ func Parse() (*zap.Logger, *config.Config) {
 	}
 
 	if *env {
-		err = config.ReadEnv(conf)
+		err = conf.LoadEnv()
 		if err != nil {
 			logger.Fatal("loading environments", zap.Error(err))
 		}

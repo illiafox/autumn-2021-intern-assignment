@@ -3,7 +3,6 @@ package methods
 import (
 	"context"
 	"encoding/json"
-	"errors"
 	"fmt"
 	"net/http"
 	"strconv"
@@ -46,7 +45,7 @@ func (m Methods) Get(w http.ResponseWriter, r *http.Request) {
 
 	balance, _, err := m.db.GetBalance(context.Background(), get.User)
 	if err != nil {
-		if errors.As(err, public.ErrInternal) {
+		if public.AsInternal(err) {
 			w.WriteHeader(http.StatusInternalServerError)
 		} else {
 			w.WriteHeader(http.StatusNotAcceptable)

@@ -16,6 +16,7 @@ type Repository interface {
 	GetTransfers(ctx context.Context, userID, offset, limit int64, sort string) ([]Transaction, error)
 
 	Switch(ctx context.Context, oldUserID, newUserID int64) error
+	Delete(ctx context.Context, userID int64) error
 }
 
 type Transaction struct {

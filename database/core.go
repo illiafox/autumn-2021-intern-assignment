@@ -36,17 +36,21 @@ func New(conf config.Postgres) (*Database, error) {
 		return nil, fmt.Errorf("ping: %w", err)
 	}
 
-	return &Database{
-		Methods: methods.New(pool),
-		pool:    pool,
-	}, nil
+	return NewDatabase(pool), nil
 }
 
 type Database struct {
-	Methods methods.Methods
-	pool    *pgxpool.Pool
+	methods.Methods
+	pool *pgxpool.Pool
 }
 
 func (d Database) Close() {
 	d.pool.Close()
+}
+
+func NewDatabase(pool *pgxpool.Pool) *Database {
+	return &Database{
+		Methods: methods.New(pool),
+		pool:    pool,
+	}
 }

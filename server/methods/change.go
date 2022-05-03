@@ -3,7 +3,6 @@ package methods
 import (
 	"context"
 	"encoding/json"
-	"errors"
 	"fmt"
 	"net/http"
 
@@ -54,7 +53,7 @@ func (m Methods) Change(w http.ResponseWriter, r *http.Request) {
 
 	err = m.db.ChangeBalance(ctx, change.User, change.Change, change.Description)
 	if err != nil {
-		if errors.As(err, public.ErrInternal) {
+		if public.AsInternal(err) {
 			w.WriteHeader(http.StatusUnprocessableEntity)
 		} else {
 			w.WriteHeader(http.StatusNotAcceptable)

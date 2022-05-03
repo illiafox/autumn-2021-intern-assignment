@@ -30,3 +30,7 @@ type Config struct {
 	Host      Host
 	Exchanger Exchanger
 }
+
+func (c *Config) LoadEnv() error {
+	return ReadEnv(c)
+}

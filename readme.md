@@ -85,6 +85,26 @@ In addition to the terminal output, logs are also written to the file
 {"level":"info","ts":"Sun, 01 May 2022 14:54:38 EEST","msg":"Initializing database"}
 ```
 
+---
+
+## Database tests
+
+### 1. Create database and tables via migration
+
+### 2. Execute:
+
+```shell
+POSTGRES_DATABASE=avito_test go test
+```
+
+#### Tests won't start if two tables are not empty
+
+#### Tables will be truncated automatically
+
+--- 
+### Api tests: soon
+
+---
 
 
 ## Exchange Currencies
@@ -160,15 +180,11 @@ exchange.Add("EUR", 92.39)
 `action` integer -- change in cents
 `date` timestamp -- transaction time
 `description` text -- transaction description
-    
- FOREIGN KEY (balance_id, from_id) REFERENCES balances (balance_id)
 ```
 
 ---
 
 ## API Methods
-
-### ~~Tests~~: in development
 
 **Default port `8080`, Endpoint `http://localhost:8080/`**
 
@@ -258,7 +274,7 @@ Response:
 {
   "user_id": 10, // user id
   "change": 3000, // change amount IN CENTS
-  "decription": "salary" // transaction description
+  "description": "salary" // transaction description
 }
 ```
 
@@ -278,7 +294,7 @@ Response:
 {
   "user_id": 10, // user id
   "change": -3000, // amount IN CENTS
-  "decription": "supermarket" // описание транзакции
+  "description": "supermarket" // описание транзакции
 }
 ```
 
@@ -431,6 +447,32 @@ If balance with new user id already exists
   "err": "db.Switch(old 10 - new 12): balance with user_id 12 already exists"
 }
 ```
+
+---
+
+### `/delete` - delete balance
+
+#### Transactions won't be deleted
+
+* Method: `POST`
+
+#### Request:
+
+```json5
+{
+  "user_id": 10, // user id
+}
+```
+
+#### Possible Error:
+
+```json5
+{
+  "ok": false, // balance not found
+  "err": "delete balance: balance with user id 10 not found"
+}
+```
+
 
 ---
 
