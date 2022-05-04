@@ -3,7 +3,6 @@ package methods
 import (
 	"context"
 	"fmt"
-	"github.com/jackc/pgx/v4"
 	"time"
 
 	"autumn-2021-intern-assignment/public"
@@ -29,16 +28,12 @@ func (sql Methods) Transfer(ctx context.Context, fromID, toID, amount int64, des
 		return fmt.Errorf("insufficient funds: missing %.2f", float64(amount-sender)/100)
 	}
 
-	var receiver, receiverID int64
-
-	err = tx.QueryRow(ctx, "SELECT balance,balance_id FROM balances WHERE user_id = $1 FOR UPDATE", toID).
-		Scan(&receiver, &receiverID)
-
+	_, receiverID, err := sql.GetBalanceForUpdate(ctx, tx, toID)
 	if err != nil {
-		if err != pgx.ErrNoRows {
-			return public.NewInternal(fmt.Errorf("get balance: query: %w", err))
-		}
+		return err
+	}
 
+	if receiverID < 0 {
 		err = tx.QueryRow(
 			ctx,
 			"INSERT INTO balances (user_id,balance) VALUES ($1,$2) RETURNING balance_id", toID, amount,
@@ -47,23 +42,8 @@ func (sql Methods) Transfer(ctx context.Context, fromID, toID, amount int64, des
 		if err != nil {
 			return public.NewInternal(fmt.Errorf("new balance: insert balance (user_id %d): %w", toID, err))
 		}
-
-		receiver = -1
-	}
-
-	sender -= amount
-	_, err = tx.Exec(ctx, "UPDATE balances SET balance = $1 WHERE balance_id = $2", sender, senderID)
-
-	if err != nil {
-		return public.NewInternal(fmt.Errorf(
-			"update sender balance (user_id %d, change %d, new balance %d): %w",
-			fromID, -amount, sender, err,
-		))
-	}
-
-	if receiver >= 0 {
-		receiver += amount
-		_, err = tx.Exec(ctx, "UPDATE balances SET balance = $1 WHERE balance_id = $2", receiver, receiverID)
+	} else {
+		_, err = tx.Exec(ctx, "UPDATE balances SET balance = balance + amount WHERE balance_id = $2", amount, receiverID)
 
 		if err != nil {
 			return public.NewInternal(fmt.Errorf(
@@ -71,6 +51,15 @@ func (sql Methods) Transfer(ctx context.Context, fromID, toID, amount int64, des
 				toID, amount, sender, err,
 			))
 		}
+	}
+
+	_, err = tx.Exec(ctx, "UPDATE balances SET balance = balance - $1 WHERE balance_id = $2", amount, senderID)
+
+	if err != nil {
+		return public.NewInternal(fmt.Errorf(
+			"update sender balance (user_id %d, change %d, new balance %d): %w",
+			fromID, -amount, sender, err,
+		))
 	}
 
 	_, err = tx.Exec(ctx, `INSERT INTO transactions (balance_id,from_id,action,description,date)

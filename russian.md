@@ -455,7 +455,7 @@ exchange.Add("EUR", 92.39)
 ```json5
 {
   "ok": false, // баланс с user_id 12 уже есть, для передачи можно удалить через /del
-  "err": "db.Switch(old 10 - new 12): balance with user_id 12 already exists"
+  "err": "tx.Switch(old 10 - new 12): balance with user_id 12 already exists"
 }
 ```
 

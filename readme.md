@@ -444,7 +444,7 @@ If balance with new user id already exists
 ```json5
 {
   "ok": false,
-  "err": "db.Switch(old 10 - new 12): balance with user_id 12 already exists"
+  "err": "tx.Switch(old 10 - new 12): balance with user_id 12 already exists"
 }
 ```
 

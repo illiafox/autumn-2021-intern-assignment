@@ -47,10 +47,11 @@ func (m Methods) Get(w http.ResponseWriter, r *http.Request) {
 	if err != nil {
 		if public.AsInternal(err) {
 			w.WriteHeader(http.StatusInternalServerError)
+			EncodeError(w, fmt.Errorf("get balance: %w", err))
 		} else {
 			w.WriteHeader(http.StatusNotAcceptable)
+			EncodeError(w, fmt.Errorf("balance with user id %d not found", get.User))
 		}
-		EncodeError(w, fmt.Errorf("get balance: %w", err))
 
 		return
 	}

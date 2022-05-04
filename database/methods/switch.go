@@ -20,8 +20,11 @@ func (sql Methods) Switch(ctx context.Context, oldUserID, newUserID int64) error
 		return public.NewInternal(fmt.Errorf("GetBalance(old %d): %w", oldUserID, err))
 	}
 
-	_, _, err = sql.GetBalance(ctx, newUserID)
-	if err == nil {
+	_, bufID, err := sql.GetBalance(ctx, newUserID)
+	if err != nil {
+		return err
+	}
+	if bufID > 0 {
 		return fmt.Errorf("balance with user_id %d already exists", newUserID)
 	}
 

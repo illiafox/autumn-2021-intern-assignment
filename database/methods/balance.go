@@ -1,13 +1,12 @@
 package methods
 
 import (
+	"autumn-2021-intern-assignment/public"
 	"context"
 	"fmt"
-	"time"
-
-	"autumn-2021-intern-assignment/public"
 	"github.com/jackc/pgx/v4"
 	"github.com/jackc/pgx/v4/pgxpool"
+	"time"
 )
 
 type Methods struct {
@@ -24,11 +23,11 @@ func (sql Methods) GetBalance(ctx context.Context, userID int64) (balance, balan
 		Scan(&balance, &balanceID)
 
 	if err != nil {
-		if err != pgx.ErrNoRows {
-			return -1, -1, public.NewInternal(fmt.Errorf("query: %w", err))
+		if err == pgx.ErrNoRows {
+			return -1, -1, nil
 		}
 
-		return -1, -1, fmt.Errorf("balance with user id %d not found", userID)
+		return -1, -1, public.NewInternal(fmt.Errorf("query: %w", err))
 	}
 
 	return
@@ -42,22 +41,18 @@ func (sql Methods) ChangeBalance(ctx context.Context, userID, change int64, desc
 	}
 	defer t.Rollback(ctx)
 
-	var balance, balanceID int64
-
-	err = t.QueryRow(ctx, "SELECT balance,balance_id FROM balances WHERE user_id = $1 FOR UPDATE", userID).
-		Scan(&balance, &balanceID)
+	balance, balanceID, err := sql.GetBalanceForUpdate(ctx, t, userID)
 
 	if err != nil {
-		if err != pgx.ErrNoRows {
-			return public.NewInternal(fmt.Errorf("get balance: query: %w", err))
-		}
+		return err
+	}
 
+	if balanceID < 0 {
 		if change < 0 {
 			return fmt.Errorf("change (%d) is below zero, balance creating is forbidden", change)
 		}
 
-		err = t.QueryRow(
-			ctx,
+		err = t.QueryRow(ctx,
 			"INSERT INTO balances (user_id,balance) VALUES ($1,$2) RETURNING balance_id", userID, change,
 		).Scan(&balanceID)
 
@@ -84,8 +79,9 @@ func (sql Methods) ChangeBalance(ctx context.Context, userID, change int64, desc
 			balanceID, change, balance, err,
 		))
 	}
+
 final:
-	_, err = t.Exec(ctx, `INSERT INTO transactions (balance_id,action,description,date) 
+	_, err = t.Exec(ctx, `INSERT INTO transactions (balance_id,action,description,date)
 	VALUES ($1,$2,$3,$4)`, balanceID, change, description, time.Now().UTC())
 
 	if err != nil {
@@ -103,16 +99,16 @@ final:
 	return nil
 }
 
-func (Methods) GetBalanceForUpdate(ctx context.Context, db pgx.Tx, userID int64) (balance, balanceID int64, err error) {
-	err = db.QueryRow(ctx, "SELECT balance,balance_id FROM balances WHERE user_id = $1", userID).
+func (Methods) GetBalanceForUpdate(ctx context.Context, tx pgx.Tx, userID int64) (balance, balanceID int64, err error) {
+	err = tx.QueryRow(ctx, "SELECT balance,balance_id FROM balances WHERE user_id = $1", userID).
 		Scan(&balance, &balanceID)
 
 	if err != nil {
-		if err != pgx.ErrNoRows {
-			return -1, -1, public.NewInternal(fmt.Errorf("query: %w", err))
+		if err == pgx.ErrNoRows {
+			return -1, -1, nil
 		}
 
-		return -1, -1, fmt.Errorf("balance with user id %d not found", userID)
+		return -1, -1, public.NewInternal(fmt.Errorf("get balance: query: %w", err))
 	}
 
 	return
