@@ -33,8 +33,9 @@ migrate -database ${POSTGRESQL_URL} -path migrate/ down
 git clone https://github.com/illiafox/autumn-2021-intern-assignment avito
 cd avito/cmd/app
 
-go build -o server
-./server
+make build
+
+./cmd/app/server
 ```
 
 #### С нестандартными путями к конфигу и лог файлу
@@ -97,7 +98,7 @@ environment:
 ### 2. Запустите:
 
 ```shell
-POSTGRES_DATABASE=avito_test go test
+POSTGRES_DATABASE=avito_test make test
 ```
 
 #### Тесты запустятся при условии, что таблица пуста

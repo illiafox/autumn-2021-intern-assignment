@@ -30,10 +30,11 @@ migrate -database ${POSTGRESQL_URL} -path migrate/ down
 
 ```shell
 git clone https://github.com/illiafox/autumn-2021-intern-assignment avito
-cd avito/cmd/app
+cd avito
 
-go build -o server
-./server
+make build
+
+./cmd/app/server
 ```
 
 #### With non-standard config and log file paths
@@ -94,7 +95,7 @@ In addition to the terminal output, logs are also written to the file
 ### 2. Execute:
 
 ```shell
-POSTGRES_DATABASE=avito_test go test
+POSTGRES_DATABASE=avito_test make test
 ```
 
 #### Tests won't start if two tables are not empty
