@@ -12,20 +12,11 @@ import (
 	"github.com/shopspring/decimal"
 )
 
-type getJSON struct {
-	User int64  `json:"user_id"`
-	Base string `json:"base"`
-}
-
-type getRetJSON struct {
-	Ok      bool    `json:"ok"`
-	Base    string  `json:"base"`
-	Rate    float64 `json:"rate,omitempty"`
-	Balance string  `json:"balance"`
-}
-
 func (m Methods) Get(w http.ResponseWriter, r *http.Request) {
-	var get getJSON
+	var get = struct {
+		User int64  `json:"user_id"`
+		Base string `json:"base"`
+	}{}
 
 	err := json.NewDecoder(r.Body).Decode(&get)
 	if err != nil {
@@ -56,7 +47,12 @@ func (m Methods) Get(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	var ret = getRetJSON{Ok: true}
+	var ret = struct {
+		Ok      bool    `json:"ok"`
+		Base    string  `json:"base"`
+		Rate    float64 `json:"rate,omitempty"`
+		Balance string  `json:"balance"`
+	}{Ok: true}
 
 	if get.Base != "" {
 		ex, ok := exchange.GetExchange(get.Base)

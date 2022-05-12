@@ -9,13 +9,11 @@ import (
 	"autumn-2021-intern-assignment/public"
 )
 
-type switchJSON struct {
-	OldUserID int64 `json:"old_user_id"`
-	NewUserID int64 `json:"new_user_id"`
-}
-
 func (m Methods) Switch(w http.ResponseWriter, r *http.Request) {
-	var sw switchJSON
+	var sw = struct {
+		OldUserID int64 `json:"old_user_id"`
+		NewUserID int64 `json:"new_user_id"`
+	}{}
 
 	err := json.NewDecoder(r.Body).Decode(&sw)
 	if err != nil {

@@ -8,13 +8,11 @@ import (
 	"net/http"
 )
 
-type deleteJSON struct {
-	User int64 `json:"user_id"`
-}
-
 func (m Methods) Delete(w http.ResponseWriter, r *http.Request) {
 
-	var del deleteJSON
+	var del = struct {
+		User int64 `json:"user_id"`
+	}{}
 
 	err := json.NewDecoder(r.Body).Decode(&del)
 	if err != nil {

@@ -9,15 +9,13 @@ import (
 	"autumn-2021-intern-assignment/public"
 )
 
-type changeJSON struct {
-	User        int64  `json:"user_id"`
-	Change      int64  `json:"change"`
-	Description string `json:"description"`
-}
-
 func (m Methods) Change(w http.ResponseWriter, r *http.Request) {
 
-	var change changeJSON
+	var change = struct {
+		User        int64  `json:"user_id"`
+		Change      int64  `json:"change"`
+		Description string `json:"description"`
+	}{}
 
 	err := json.NewDecoder(r.Body).Decode(&change)
 	if err != nil {

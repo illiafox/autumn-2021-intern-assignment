@@ -10,20 +10,13 @@ import (
 	"autumn-2021-intern-assignment/public"
 )
 
-type viewJSON struct {
-	User   int64  `json:"user_id"`
-	Sort   string `json:"sort"`
-	Limit  int64  `json:"limit"`
-	Offset int64  `json:"offset"`
-}
-
-type viewRetJSON struct {
-	Ok           bool                `json:"ok"`
-	Transactions []model.Transaction `json:"transactions"`
-}
-
 func (m Methods) View(w http.ResponseWriter, r *http.Request) {
-	var view viewJSON
+	var view = struct {
+		User   int64  `json:"user_id"`
+		Sort   string `json:"sort"`
+		Limit  int64  `json:"limit"`
+		Offset int64  `json:"offset"`
+	}{}
 
 	err := json.NewDecoder(r.Body).Decode(&view)
 	if err != nil {
@@ -75,10 +68,11 @@ func (m Methods) View(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	err = json.NewEncoder(w).Encode(viewRetJSON{
-		Ok:           true,
-		Transactions: trans,
-	})
+	err = json.NewEncoder(w).Encode(struct {
+		Ok           bool                `json:"ok"`
+		Transactions []model.Transaction `json:"transactions"`
+	}{true, trans})
+
 	if err != nil {
 		w.WriteHeader(http.StatusInternalServerError)
 		EncodeError(w, fmt.Errorf("encoding json: %w", err))

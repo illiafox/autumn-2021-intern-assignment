@@ -9,15 +9,13 @@ import (
 	"autumn-2021-intern-assignment/public"
 )
 
-type transferJSON struct {
-	ToID        int64  `json:"to_id"`
-	FromID      int64  `json:"from_id"`
-	Amount      int64  `json:"amount"`
-	Description string `json:"description"`
-}
-
 func (m Methods) Transfer(w http.ResponseWriter, r *http.Request) {
-	var trans transferJSON
+	var trans = struct {
+		ToID        int64  `json:"to_id"`
+		FromID      int64  `json:"from_id"`
+		Amount      int64  `json:"amount"`
+		Description string `json:"description"`
+	}{}
 
 	err := json.NewDecoder(r.Body).Decode(&trans)
 	if err != nil {
