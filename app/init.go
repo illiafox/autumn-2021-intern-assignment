@@ -25,16 +25,12 @@ type App struct {
 	db *database.Database
 }
 
-func New() App {
-	return App{}
-}
-
-func (app *App) Init() DeferFunc {
+func Init() (App, DeferFunc) {
 
 	var (
-		HTTP       = flag.Bool("http", false, "force HTTP mode")
-		logPath    = flag.String("log", "log.txt", "log file path (default 'log.txt')")
-		configPath = flag.String("config", "config.toml", "config path (default 'config.toml')")
+		HTTP    = flag.Bool("http", false, "force HTTP mode")
+		logs    = flag.String("log", "log.txt", "log file path (default 'log.txt')")
+		configs = flag.String("config", "config.toml", "config path (default 'config.toml')")
 
 		env = flag.Bool("env", false, "load from environment variables")
 	)
@@ -42,15 +38,15 @@ func (app *App) Init() DeferFunc {
 
 	// // //
 
-	file, err := os.OpenFile(*logPath, os.O_APPEND|os.O_WRONLY|os.O_CREATE, 0666)
+	file, err := os.OpenFile(*logs, os.O_APPEND|os.O_WRONLY|os.O_CREATE, 0666)
 
 	if err != nil {
-		log.Fatalln(fmt.Errorf("creating/opening log file (%s): %w", *logPath, err))
+		log.Fatalln(fmt.Errorf("create/open log file (%s): %w", *logs, err))
 	}
 
 	info, err := file.Stat()
 	if err != nil {
-		log.Fatalln(fmt.Errorf("getting file stats: %w", err))
+		log.Fatalln(fmt.Errorf("get file stats: %w", err))
 	}
 
 	if info.Size() > 0 {
@@ -62,30 +58,33 @@ func (app *App) Init() DeferFunc {
 
 	logger := loggers.NewLogger(file)
 
-	conf, err := config.ReadConfig(*configPath)
+	conf, err := config.ReadConfig(*configs)
 	if err != nil {
-		logger.Fatal("reading config file", zap.String("config", *configPath), zap.Error(err))
+		logger.Fatal("read config file", zap.String("config", *configs), zap.Error(err))
 	}
 
 	if *env {
 		err = conf.LoadEnv()
 		if err != nil {
-			logger.Fatal("loading environments", zap.Error(err))
+			logger.Fatal("load environments", zap.Error(err))
 		}
 	}
-
-	app.logger = logger
-	app.conf = conf
-	app.HTTP = *HTTP
 
 	runtime.GC()
 
 	// sync function
+	return App{
+		logger: logger,
+		conf:   conf,
+		HTTP:   *HTTP,
+	}, sync(logger)
+}
+
+func sync(logger *zap.Logger) DeferFunc {
 	return func() {
 		err := logger.Sync()
 		if err != nil {
-			_, ok := err.(*fs.PathError)
-			if ok {
+			if _, ok := err.(*fs.PathError); ok {
 				return
 			}
 

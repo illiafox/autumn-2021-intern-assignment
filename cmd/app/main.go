@@ -3,9 +3,7 @@ package main
 import apps "autumn-2021-intern-assignment/app"
 
 func main() {
-	app := apps.New()
-
-	sync := app.Init()
+	app, sync := apps.Init()
 	defer sync()
 
 	closeDB, ok := app.Database()
