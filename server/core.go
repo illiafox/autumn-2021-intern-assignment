@@ -5,7 +5,7 @@ import (
 	"time"
 
 	"autumn-2021-intern-assignment/database/model"
-	"autumn-2021-intern-assignment/server/methods"
+	"autumn-2021-intern-assignment/server/json"
 	"autumn-2021-intern-assignment/utils/config"
 	"github.com/prometheus/client_golang/prometheus/promhttp"
 )
@@ -13,16 +13,9 @@ import (
 func New(db model.Repository, conf config.Host) *http.Server {
 	router := http.NewServeMux()
 
-	m := methods.New(db)
-
-	router.HandleFunc("/get", m.Get)
-	router.HandleFunc("/change", m.Change)
-	router.HandleFunc("/transfer", m.Transfer)
-	router.HandleFunc("/view", m.View)
-	router.HandleFunc("/switch", m.Switch)
-	router.HandleFunc("/delete", m.Delete)
-
 	router.Handle("/metrics", promhttp.Handler())
+
+	router.Handle("/", json.New(db))
 	//
 
 	return &http.Server{

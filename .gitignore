@@ -1,2 +1,6 @@
 .idea
 /cmd/app/log.txt
+
+# temporarily unavailable
+/test/http/
+

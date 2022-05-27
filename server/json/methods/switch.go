@@ -18,21 +18,21 @@ func (m Methods) Switch(w http.ResponseWriter, r *http.Request) {
 	err := json.NewDecoder(r.Body).Decode(&sw)
 	if err != nil {
 		w.WriteHeader(http.StatusBadRequest)
-		EncodeError(w, fmt.Errorf("decoding json: %w", err))
+		EncodeErr(w, fmt.Errorf("decoding json: %w", err))
 
 		return
 	}
 
 	if sw.OldUserID <= 0 {
 		w.WriteHeader(http.StatusBadRequest)
-		EncodeError(w, fmt.Errorf("'old_user_id' can't be lower or equal zero, got %d", sw.OldUserID))
+		EncodeErr(w, fmt.Errorf("'old_user_id' can't be lower or equal zero, got %d", sw.OldUserID))
 
 		return
 	}
 
 	if sw.NewUserID <= 0 {
 		w.WriteHeader(http.StatusBadRequest)
-		EncodeError(w, fmt.Errorf("'new_user_id' can't be lower or equal zero, got %d", sw.NewUserID))
+		EncodeErr(w, fmt.Errorf("'new_user_id' can't be lower or equal zero, got %d", sw.NewUserID))
 
 		return
 	}
@@ -46,7 +46,7 @@ func (m Methods) Switch(w http.ResponseWriter, r *http.Request) {
 		} else {
 			w.WriteHeader(http.StatusNotAcceptable)
 		}
-		EncodeError(w, fmt.Errorf("switch: %w", err))
+		EncodeErr(w, fmt.Errorf("switch: %w", err))
 
 		return
 	}

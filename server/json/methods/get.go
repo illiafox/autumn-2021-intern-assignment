@@ -22,14 +22,14 @@ func (m Methods) Get(w http.ResponseWriter, r *http.Request) {
 	if err != nil {
 
 		w.WriteHeader(http.StatusBadRequest)
-		EncodeError(w, fmt.Errorf("decoding json: %w", err))
+		EncodeErr(w, fmt.Errorf("decoding json: %w", err))
 
 		return
 	}
 
 	if get.User <= 0 {
 		w.WriteHeader(http.StatusBadRequest)
-		EncodeError(w, fmt.Errorf("wrong 'user' field value: %d", get.User))
+		EncodeErr(w, fmt.Errorf("wrong 'user' field value: %d", get.User))
 
 		return
 	}
@@ -38,10 +38,10 @@ func (m Methods) Get(w http.ResponseWriter, r *http.Request) {
 	if err != nil {
 		if public.AsInternal(err) {
 			w.WriteHeader(http.StatusInternalServerError)
-			EncodeError(w, fmt.Errorf("get balance: %w", err))
+			EncodeErr(w, fmt.Errorf("get balance: %w", err))
 		} else {
 			w.WriteHeader(http.StatusNotAcceptable)
-			EncodeError(w, fmt.Errorf("balance with user id %d not found", get.User))
+			EncodeErr(w, fmt.Errorf("balance with user id %d not found", get.User))
 		}
 
 		return
@@ -58,7 +58,7 @@ func (m Methods) Get(w http.ResponseWriter, r *http.Request) {
 		ex, ok := exchange.GetExchange(get.Base)
 		if !ok {
 			w.WriteHeader(http.StatusNotAcceptable)
-			EncodeError(w, fmt.Errorf("base: abbreviation '%s' is not supported", get.Base))
+			EncodeErr(w, fmt.Errorf("base: abbreviation '%s' is not supported", get.Base))
 
 			return
 		}
@@ -74,7 +74,7 @@ func (m Methods) Get(w http.ResponseWriter, r *http.Request) {
 	err = json.NewEncoder(w).Encode(ret)
 	if err != nil {
 		w.WriteHeader(http.StatusInternalServerError)
-		EncodeError(w, fmt.Errorf("encoding json: %w", err))
+		EncodeErr(w, fmt.Errorf("encoding json: %w", err))
 
 		return
 	}

@@ -1,11 +1,12 @@
 package methods
 
 import (
-	"autumn-2021-intern-assignment/public"
 	"context"
 	"encoding/json"
 	"fmt"
 	"net/http"
+
+	"autumn-2021-intern-assignment/public"
 )
 
 func (m Methods) Delete(w http.ResponseWriter, r *http.Request) {
@@ -18,14 +19,14 @@ func (m Methods) Delete(w http.ResponseWriter, r *http.Request) {
 	if err != nil {
 
 		w.WriteHeader(http.StatusBadRequest)
-		EncodeError(w, fmt.Errorf("decoding json: %w", err))
+		EncodeErr(w, fmt.Errorf("decoding json: %w", err))
 
 		return
 	}
 
 	if del.User <= 0 {
 		w.WriteHeader(http.StatusBadRequest)
-		EncodeError(w, fmt.Errorf("wrong 'user' field value: %d", del.User))
+		EncodeErr(w, fmt.Errorf("wrong 'user' field value: %d", del.User))
 
 		return
 	}
@@ -39,7 +40,7 @@ func (m Methods) Delete(w http.ResponseWriter, r *http.Request) {
 		} else {
 			w.WriteHeader(http.StatusNotAcceptable)
 		}
-		EncodeError(w, fmt.Errorf("delete user: %w", err))
+		EncodeErr(w, fmt.Errorf("delete user: %w", err))
 
 		return
 	}

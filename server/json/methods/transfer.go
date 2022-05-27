@@ -20,26 +20,26 @@ func (m Methods) Transfer(w http.ResponseWriter, r *http.Request) {
 	err := json.NewDecoder(r.Body).Decode(&trans)
 	if err != nil {
 		w.WriteHeader(http.StatusBadRequest)
-		EncodeError(w, fmt.Errorf("decoding json: %w", err))
+		EncodeErr(w, fmt.Errorf("decoding json: %w", err))
 
 		return
 	}
 
 	if trans.ToID <= 0 {
 		w.WriteHeader(http.StatusBadRequest)
-		EncodeError(w, fmt.Errorf("wrong 'to_id' field value: %d", trans.ToID))
+		EncodeErr(w, fmt.Errorf("wrong 'to_id' field value: %d", trans.ToID))
 
 		return
 	}
 	if trans.FromID <= 0 {
 		w.WriteHeader(http.StatusBadRequest)
-		EncodeError(w, fmt.Errorf("wrong 'from_id' field value: %d", trans.FromID))
+		EncodeErr(w, fmt.Errorf("wrong 'from_id' field value: %d", trans.FromID))
 
 		return
 	}
 	if trans.Amount <= 0 {
 		w.WriteHeader(http.StatusBadRequest)
-		EncodeError(w, fmt.Errorf("wrong 'amount' field value: can't be lower or equal zero, got %d", trans.Amount))
+		EncodeErr(w, fmt.Errorf("wrong 'amount' field value: can't be lower or equal zero, got %d", trans.Amount))
 
 		return
 	}
@@ -53,7 +53,7 @@ func (m Methods) Transfer(w http.ResponseWriter, r *http.Request) {
 		} else {
 			w.WriteHeader(http.StatusNotAcceptable)
 		}
-		EncodeError(w, fmt.Errorf("transfer: %w", err))
+		EncodeErr(w, fmt.Errorf("transfer: %w", err))
 
 		return
 	}

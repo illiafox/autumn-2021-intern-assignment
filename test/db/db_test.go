@@ -1,15 +1,16 @@
-package test
+package db
 
 import (
-	"autumn-2021-intern-assignment/database"
-	"autumn-2021-intern-assignment/utils/config"
 	"context"
 	"fmt"
-	"github.com/jackc/pgx/v4/pgxpool"
-	"github.com/stretchr/testify/suite"
 	"math/rand"
 	"testing"
 	"time"
+
+	"autumn-2021-intern-assignment/database"
+	"autumn-2021-intern-assignment/utils/config"
+	"github.com/jackc/pgx/v4/pgxpool"
+	"github.com/stretchr/testify/suite"
 )
 
 type DBSuite struct {
@@ -36,7 +37,7 @@ func (suite *DBSuite) SetupSuite() {
 	// //
 
 	err := config.ReadEnv(conf)
-	r.NoError(err, "reading environment")
+	r.NoError(err, "read environment")
 
 	// //
 
@@ -54,7 +55,7 @@ func (suite *DBSuite) SetupSuite() {
 			conf.DbName,
 		),
 	)
-	r.NoError(err, "connecting to database")
+	r.NoError(err, "connect to database")
 
 	// //
 
@@ -146,7 +147,7 @@ func (suite *DBSuite) TestSwitch() {
 func (suite *DBSuite) TestTransfer() {
 	ctx := context.Background()
 
-	first, change := rand.Int63n(100000), rand.Int63n(100000)
+	first, change := rand.Int63n(100000)+1, rand.Int63n(100000)+1
 	a := suite.Assert()
 
 	err := suite.db.ChangeBalance(ctx, first, change, "deposit")

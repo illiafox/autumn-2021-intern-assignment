@@ -20,7 +20,7 @@ func (m Methods) Change(w http.ResponseWriter, r *http.Request) {
 	err := json.NewDecoder(r.Body).Decode(&change)
 	if err != nil {
 		w.WriteHeader(http.StatusBadRequest)
-		EncodeError(w, fmt.Errorf("decoding json: %w", err))
+		EncodeErr(w, fmt.Errorf("decoding json: %w", err))
 
 		return
 	}
@@ -28,7 +28,7 @@ func (m Methods) Change(w http.ResponseWriter, r *http.Request) {
 	if change.User <= 0 {
 		w.WriteHeader(http.StatusBadRequest)
 
-		EncodeError(w, fmt.Errorf("wrong 'user' field value: %d", change.User))
+		EncodeErr(w, fmt.Errorf("wrong 'user' field value: %d", change.User))
 
 		return
 	}
@@ -57,7 +57,7 @@ func (m Methods) Change(w http.ResponseWriter, r *http.Request) {
 			w.WriteHeader(http.StatusNotAcceptable)
 		}
 
-		EncodeError(w, fmt.Errorf("change balance: %w", err))
+		EncodeErr(w, fmt.Errorf("change balance: %w", err))
 
 		return
 	}

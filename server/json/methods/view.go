@@ -21,28 +21,28 @@ func (m Methods) View(w http.ResponseWriter, r *http.Request) {
 	err := json.NewDecoder(r.Body).Decode(&view)
 	if err != nil {
 		w.WriteHeader(http.StatusBadRequest)
-		EncodeError(w, fmt.Errorf("decoding json: %w", err))
+		EncodeErr(w, fmt.Errorf("decoding json: %w", err))
 
 		return
 	}
 
 	if view.User <= 0 {
 		w.WriteHeader(http.StatusBadRequest)
-		EncodeError(w, fmt.Errorf("wrong 'user' field value: %d", view.User))
+		EncodeErr(w, fmt.Errorf("wrong 'user' field value: %d", view.User))
 
 		return
 	}
 
 	if view.Limit < 1 {
 		w.WriteHeader(http.StatusBadRequest)
-		EncodeError(w, fmt.Errorf("wrong 'limit' field value: cant be lower than 1, got %d", view.Limit))
+		EncodeErr(w, fmt.Errorf("wrong 'limit' field value: cant be lower than 1, got %d", view.Limit))
 
 		return
 	}
 
 	if view.Offset < 0 {
 		w.WriteHeader(http.StatusBadRequest)
-		EncodeError(w, fmt.Errorf("wrong 'offset' field value: cant be lower than 0 got %d", view.Offset))
+		EncodeErr(w, fmt.Errorf("wrong 'offset' field value: cant be lower than 0 got %d", view.Offset))
 
 		return
 	}
@@ -63,7 +63,7 @@ func (m Methods) View(w http.ResponseWriter, r *http.Request) {
 		} else {
 			w.WriteHeader(http.StatusUnprocessableEntity)
 		}
-		EncodeError(w, fmt.Errorf("get transfers: %w", err))
+		EncodeErr(w, fmt.Errorf("get transfers: %w", err))
 
 		return
 	}
@@ -75,7 +75,7 @@ func (m Methods) View(w http.ResponseWriter, r *http.Request) {
 
 	if err != nil {
 		w.WriteHeader(http.StatusInternalServerError)
-		EncodeError(w, fmt.Errorf("encoding json: %w", err))
+		EncodeErr(w, fmt.Errorf("encoding json: %w", err))
 
 		return
 	}

@@ -428,7 +428,7 @@ The response is the same as the in previous request, but with offset in 2 transa
 
 ### `/switch` - change balance user id
 
-* Method: `POST`
+* Method: `PUT`
 
 #### Request:
 
@@ -455,7 +455,7 @@ If balance with new user id already exists
 
 #### Transactions won't be deleted
 
-* Method: `POST`
+* Method: `DELETE`
 
 #### Request:
 

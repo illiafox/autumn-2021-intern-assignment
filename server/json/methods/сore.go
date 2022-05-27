@@ -20,7 +20,7 @@ type errJSON struct {
 	Err string `json:"err,omitempty"`
 }
 
-func EncodeError(writer io.Writer, err error) (int, error) {
+func EncodeErr(writer io.Writer, err error) (int, error) {
 	str := err.Error()
 
 	buf, err := json.Marshal(errJSON{
