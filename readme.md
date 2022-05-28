@@ -1,4 +1,6 @@
-# Balance Control Microservice
+[![](https://img.shields.io/badge/-Avalivable%20At%20Swagger-informational?style=for-the-badge&logo=swagger)](https://app.swaggerhub.com/apis-docs/illiafox/balance-json-api/1.0)
+
+# Balance JSON API
 ## Test task for the position of trainee golang backend developer
 
 ### [Версия на Русском](https://github.com/illiafox/autumn-2021-intern-assignment/blob/master/russian.md)
