@@ -15,8 +15,7 @@ func New(db model.Repository, conf config.Host) *http.Server {
 
 	router.Handle("/metrics", promhttp.Handler())
 
-	router.Handle("/", json.New(db))
-	//
+	router.Handle("/api/", http.StripPrefix("/api", json.New(db)))
 
 	return &http.Server{
 		Addr: "0.0.0.0:" + conf.Port,

@@ -1,0 +1,478 @@
+{
+    "swagger": "2.0",
+    "info": {
+        "description": "Test task for the position of trainee golang backend developer",
+        "title": "Balance API",
+        "termsOfService": "http://swagger.io/terms/",
+        "contact": {
+            "name": "API Support",
+            "url": "https://github.com/illiafox",
+            "email": "illiadimura@gmail.com"
+        },
+        "license": {
+            "name": "Boost Software License - Version 1.0",
+            "url": "https://opensource.org/licenses/BSL-1.0"
+        },
+        "version": "1.0"
+    },
+    "host": "localhost:8080",
+    "basePath": "/api",
+    "paths": {
+        "/change": {
+            "post": {
+                "description": "Change User balance",
+                "consumes": [
+                    "application/json"
+                ],
+                "produces": [
+                    "application/json"
+                ],
+                "summary": "Change Balance",
+                "parameters": [
+                    {
+                        "description": "User id, Change Amount and Description",
+                        "name": "input",
+                        "in": "body",
+                        "required": true,
+                        "schema": {
+                            "$ref": "#/definitions/methods.Change"
+                        }
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "OK",
+                        "schema": {
+                            "type": "boolean"
+                        }
+                    },
+                    "400": {
+                        "description": "Bad Request",
+                        "schema": {
+                            "$ref": "#/definitions/methods.Error"
+                        }
+                    },
+                    "406": {
+                        "description": "Not Acceptable",
+                        "schema": {
+                            "$ref": "#/definitions/methods.Error"
+                        }
+                    },
+                    "422": {
+                        "description": "Unprocessable Entity",
+                        "schema": {
+                            "$ref": "#/definitions/methods.Error"
+                        }
+                    },
+                    "500": {
+                        "description": "Internal Server Error",
+                        "schema": {
+                            "$ref": "#/definitions/methods.Error"
+                        }
+                    }
+                }
+            }
+        },
+        "/delete": {
+            "delete": {
+                "description": "Delete User balance",
+                "consumes": [
+                    "application/json"
+                ],
+                "produces": [
+                    "application/json"
+                ],
+                "summary": "Delete Balance",
+                "parameters": [
+                    {
+                        "description": "User ID",
+                        "name": "input",
+                        "in": "body",
+                        "required": true,
+                        "schema": {
+                            "$ref": "#/definitions/methods.Delete"
+                        }
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "OK",
+                        "schema": {
+                            "type": "boolean"
+                        }
+                    },
+                    "400": {
+                        "description": "Bad Request",
+                        "schema": {
+                            "$ref": "#/definitions/methods.Error"
+                        }
+                    },
+                    "406": {
+                        "description": "Not Acceptable",
+                        "schema": {
+                            "$ref": "#/definitions/methods.Error"
+                        }
+                    },
+                    "500": {
+                        "description": "Internal Server Error",
+                        "schema": {
+                            "$ref": "#/definitions/methods.Error"
+                        }
+                    }
+                }
+            }
+        },
+        "/get": {
+            "get": {
+                "description": "Get user balance",
+                "consumes": [
+                    "application/json"
+                ],
+                "produces": [
+                    "application/json"
+                ],
+                "summary": "Get Balance",
+                "parameters": [
+                    {
+                        "description": "User id and Currency",
+                        "name": "input",
+                        "in": "body",
+                        "required": true,
+                        "schema": {
+                            "$ref": "#/definitions/methods.Get"
+                        }
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "OK",
+                        "schema": {
+                            "$ref": "#/definitions/methods.Balance"
+                        }
+                    },
+                    "400": {
+                        "description": "Bad Request",
+                        "schema": {
+                            "$ref": "#/definitions/methods.Error"
+                        }
+                    },
+                    "406": {
+                        "description": "Not Acceptable",
+                        "schema": {
+                            "$ref": "#/definitions/methods.Error"
+                        }
+                    },
+                    "500": {
+                        "description": "Internal Server Error",
+                        "schema": {
+                            "$ref": "#/definitions/methods.Error"
+                        }
+                    }
+                }
+            }
+        },
+        "/switch": {
+            "put": {
+                "description": "Change balance owner",
+                "consumes": [
+                    "application/json"
+                ],
+                "produces": [
+                    "application/json"
+                ],
+                "summary": "Switch owner",
+                "parameters": [
+                    {
+                        "description": "Old and New User ID",
+                        "name": "input",
+                        "in": "body",
+                        "required": true,
+                        "schema": {
+                            "$ref": "#/definitions/methods.Switch"
+                        }
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "OK",
+                        "schema": {
+                            "type": "boolean"
+                        }
+                    },
+                    "400": {
+                        "description": "Bad Request",
+                        "schema": {
+                            "$ref": "#/definitions/methods.Error"
+                        }
+                    },
+                    "406": {
+                        "description": "Not Acceptable",
+                        "schema": {
+                            "$ref": "#/definitions/methods.Error"
+                        }
+                    },
+                    "422": {
+                        "description": "Unprocessable Entity",
+                        "schema": {
+                            "$ref": "#/definitions/methods.Error"
+                        }
+                    }
+                }
+            }
+        },
+        "/transfer": {
+            "post": {
+                "description": "Transfer money between balances",
+                "consumes": [
+                    "application/json"
+                ],
+                "produces": [
+                    "application/json"
+                ],
+                "summary": "Transfer money",
+                "parameters": [
+                    {
+                        "description": "Transfer",
+                        "name": "input",
+                        "in": "body",
+                        "required": true,
+                        "schema": {
+                            "$ref": "#/definitions/methods.Transfer"
+                        }
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "OK",
+                        "schema": {
+                            "type": "boolean"
+                        }
+                    },
+                    "400": {
+                        "description": "Bad Request",
+                        "schema": {
+                            "$ref": "#/definitions/methods.Error"
+                        }
+                    },
+                    "406": {
+                        "description": "Not Acceptable",
+                        "schema": {
+                            "$ref": "#/definitions/methods.Error"
+                        }
+                    },
+                    "422": {
+                        "description": "Unprocessable Entity",
+                        "schema": {
+                            "$ref": "#/definitions/methods.Error"
+                        }
+                    }
+                }
+            }
+        },
+        "/view": {
+            "get": {
+                "description": "View user transactions",
+                "consumes": [
+                    "application/json"
+                ],
+                "produces": [
+                    "application/json"
+                ],
+                "summary": "View transactions",
+                "parameters": [
+                    {
+                        "description": "User ID and view options",
+                        "name": "input",
+                        "in": "body",
+                        "required": true,
+                        "schema": {
+                            "$ref": "#/definitions/methods.View"
+                        }
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "OK",
+                        "schema": {
+                            "$ref": "#/definitions/methods.ViewOut"
+                        }
+                    },
+                    "400": {
+                        "description": "Bad Request",
+                        "schema": {
+                            "$ref": "#/definitions/methods.Error"
+                        }
+                    },
+                    "422": {
+                        "description": "Unprocessable Entity",
+                        "schema": {
+                            "$ref": "#/definitions/methods.Error"
+                        }
+                    },
+                    "500": {
+                        "description": "Internal Server Error",
+                        "schema": {
+                            "$ref": "#/definitions/methods.Error"
+                        }
+                    }
+                }
+            }
+        }
+    },
+    "definitions": {
+        "methods.Balance": {
+            "description": "User Balance, Base and its Rate",
+            "type": "object",
+            "properties": {
+                "balance": {
+                    "type": "string"
+                },
+                "base": {
+                    "type": "string"
+                },
+                "ok": {
+                    "type": "boolean"
+                },
+                "rate": {
+                    "type": "string"
+                }
+            }
+        },
+        "methods.Change": {
+            "description": "User id, Change Amount and Description",
+            "type": "object",
+            "properties": {
+                "change": {
+                    "type": "integer"
+                },
+                "description": {
+                    "type": "string"
+                },
+                "user_id": {
+                    "type": "integer"
+                }
+            }
+        },
+        "methods.Delete": {
+            "description": "User ID",
+            "type": "object",
+            "properties": {
+                "user_id": {
+                    "type": "integer"
+                }
+            }
+        },
+        "methods.Error": {
+            "description": "Api error",
+            "type": "object",
+            "properties": {
+                "err": {
+                    "type": "string"
+                },
+                "ok": {
+                    "type": "boolean",
+                    "default": false
+                }
+            }
+        },
+        "methods.Get": {
+            "description": "User ID and currency Base",
+            "type": "object",
+            "properties": {
+                "base": {
+                    "type": "string"
+                },
+                "user_id": {
+                    "type": "integer"
+                }
+            }
+        },
+        "methods.Switch": {
+            "description": "Old and New User ID",
+            "type": "object",
+            "properties": {
+                "new_user_id": {
+                    "type": "integer"
+                },
+                "old_user_id": {
+                    "type": "integer"
+                }
+            }
+        },
+        "methods.Transfer": {
+            "description": "To/From User ID,amount and description",
+            "type": "object",
+            "properties": {
+                "amount": {
+                    "type": "integer"
+                },
+                "description": {
+                    "type": "string"
+                },
+                "from_id": {
+                    "type": "integer"
+                },
+                "to_id": {
+                    "type": "integer"
+                }
+            }
+        },
+        "methods.View": {
+            "description": "User ID and view options",
+            "type": "object",
+            "properties": {
+                "limit": {
+                    "type": "integer"
+                },
+                "offset": {
+                    "type": "integer"
+                },
+                "sort": {
+                    "type": "string"
+                },
+                "user_id": {
+                    "type": "integer"
+                }
+            }
+        },
+        "methods.ViewOut": {
+            "type": "object",
+            "properties": {
+                "ok": {
+                    "type": "boolean"
+                },
+                "transactions": {
+                    "type": "array",
+                    "items": {
+                        "$ref": "#/definitions/model.Transaction"
+                    }
+                }
+            }
+        },
+        "model.Transaction": {
+            "description": "User Transaction",
+            "type": "object",
+            "properties": {
+                "action": {
+                    "type": "integer"
+                },
+                "balance_id": {
+                    "type": "integer"
+                },
+                "date": {
+                    "type": "string",
+                    "example": ""
+                },
+                "description": {
+                    "type": "string"
+                },
+                "from_id": {
+                    "type": "string"
+                },
+                "transaction_id": {
+                    "type": "integer"
+                }
+            }
+        }
+    }
+}

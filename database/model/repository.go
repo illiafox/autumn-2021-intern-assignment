@@ -19,11 +19,13 @@ type Repository interface {
 	Delete(ctx context.Context, userID int64) error
 }
 
+// Transaction
+// @Description User Transaction
 type Transaction struct {
 	TransactionID int64            `json:"transaction_id"`
 	BalanceID     int64            `json:"balance_id"`
 	FromID        string           `json:"from_id"`
 	Action        int64            `json:"action"`
-	Date          pgtype.Timestamp `json:"date"`
+	Date          pgtype.Timestamp `json:"date,string" swaggertype:"string"`
 	Description   string           `json:"description"`
 }

@@ -1,4 +1,5 @@
-# Test task for the position of trainee golang backend developer
+# Balance Control Microservice
+## Test task for the position of trainee golang backend developer
 
 ### [Версия на Русском](https://github.com/illiafox/autumn-2021-intern-assignment/blob/master/russian.md)
 
@@ -187,7 +188,7 @@ exchange.Add("EUR", 92.39)
 
 ## API Methods
 
-**Default port `8080`, Endpoint `http://localhost:8080/`**
+**Default port `8080`, Endpoint `http://localhost:8080/api/`**
 
 ---
 
@@ -249,7 +250,7 @@ Response:
 {
   "ok": true,
   "base": "EUR", // Currency abbreviation
-  "rate": 80.12, // Currency rate
+  "rate": "60.12", // Currency rate
   "balance": "1.20" // Balance NOT IN cents
 }
 ```

@@ -4,26 +4,30 @@ import (
 	"encoding/json"
 	"io"
 
-	"autumn-2021-intern-assignment/database/model"
+	rep "autumn-2021-intern-assignment/database/model"
 )
 
 type Methods struct {
-	db model.Repository
+	db rep.Repository
 }
 
-func New(db model.Repository) *Methods {
+func New(db rep.Repository) *Methods {
 	return &Methods{db: db}
 }
 
-type errJSON struct {
-	Ok  bool   `json:"ok"`
-	Err string `json:"err,omitempty"`
+// // //
+
+// Error
+// @Description Api error
+type Error struct {
+	Ok  bool   `json:"ok" default:"false"`
+	Err string `json:"err"`
 }
 
-func EncodeErr(writer io.Writer, err error) (int, error) {
+func WriteError(writer io.Writer, err error) (int, error) {
 	str := err.Error()
 
-	buf, err := json.Marshal(errJSON{
+	buf, err := json.Marshal(Error{
 		Ok:  false,
 		Err: str,
 	})
@@ -35,8 +39,8 @@ func EncodeErr(writer io.Writer, err error) (int, error) {
 	return writer.Write(buf)
 }
 
-func EncodeString(writer io.Writer, str string) (int, error) {
-	buf, err := json.Marshal(errJSON{
+func WriteString(writer io.Writer, str string) (int, error) {
+	buf, err := json.Marshal(Error{
 		Ok:  false,
 		Err: str,
 	})

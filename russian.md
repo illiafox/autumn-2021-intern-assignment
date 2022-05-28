@@ -196,7 +196,7 @@ exchange.Add("EUR", 92.39)
 
 ## Методы API
 
-**Порт по умолчанию `8080`, Endpoint `http://localhost:8080/`**
+**Порт по умолчанию `8080`, Endpoint `http://localhost:8080/api/`**
 
 ---
 

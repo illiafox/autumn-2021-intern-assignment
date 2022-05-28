@@ -12,24 +12,49 @@ import (
 	"github.com/shopspring/decimal"
 )
 
+// Get
+// @Description User ID and currency Base
+type Get struct {
+	User int64  `json:"user_id"`
+	Base string `json:"base"`
+}
+
+// Balance
+// @Description User Balance, Base and its Rate
+type Balance struct {
+	Ok bool `json:"ok"`
+
+	Base    string `json:"base"`
+	Rate    string `json:"rate,omitempty"`
+	Balance string `json:"balance"`
+}
+
+// Get godoc
+// @Summary      Get Balance
+// @Description  Get user balance
+// @Accept       json
+// @Produce      json
+// @Param        input body 	Get true "User id and Currency"
+// @Success      200  {object}  Balance
+// @Failure      400  {object}  Error
+// @Failure      406  {object}  Error
+// @Failure      500  {object}  Error
+// @Router       /get [get]
 func (m Methods) Get(w http.ResponseWriter, r *http.Request) {
-	var get = struct {
-		User int64  `json:"user_id"`
-		Base string `json:"base"`
-	}{}
+	var get Get
 
 	err := json.NewDecoder(r.Body).Decode(&get)
 	if err != nil {
 
 		w.WriteHeader(http.StatusBadRequest)
-		EncodeErr(w, fmt.Errorf("decoding json: %w", err))
+		WriteError(w, fmt.Errorf("decoding json: %w", err))
 
 		return
 	}
 
 	if get.User <= 0 {
 		w.WriteHeader(http.StatusBadRequest)
-		EncodeErr(w, fmt.Errorf("wrong 'user' field value: %d", get.User))
+		WriteError(w, fmt.Errorf("wrong 'user' field value: %d", get.User))
 
 		return
 	}
@@ -38,31 +63,26 @@ func (m Methods) Get(w http.ResponseWriter, r *http.Request) {
 	if err != nil {
 		if public.AsInternal(err) {
 			w.WriteHeader(http.StatusInternalServerError)
-			EncodeErr(w, fmt.Errorf("get balance: %w", err))
+			WriteError(w, fmt.Errorf("get balance: %w", err))
 		} else {
 			w.WriteHeader(http.StatusNotAcceptable)
-			EncodeErr(w, fmt.Errorf("balance with user id %d not found", get.User))
+			WriteError(w, fmt.Errorf("balance with user id %d not found", get.User))
 		}
 
 		return
 	}
 
-	var ret = struct {
-		Ok      bool    `json:"ok"`
-		Base    string  `json:"base"`
-		Rate    float64 `json:"rate,omitempty"`
-		Balance string  `json:"balance"`
-	}{Ok: true}
+	var ret Balance
 
 	if get.Base != "" {
 		ex, ok := exchange.GetExchange(get.Base)
 		if !ok {
 			w.WriteHeader(http.StatusNotAcceptable)
-			EncodeErr(w, fmt.Errorf("base: abbreviation '%s' is not supported", get.Base))
+			WriteError(w, fmt.Errorf("base: abbreviation '%s' is not supported", get.Base))
 
 			return
 		}
-		ret.Rate = ex
+		ret.Rate = strconv.FormatFloat(ex, 'f', 2, 64)
 		ret.Balance = decimal.NewFromFloat(float64(balance) / 100).Div(decimal.NewFromFloat(ex)).StringFixed(2)
 	} else {
 		get.Base = "RUB"
@@ -70,12 +90,6 @@ func (m Methods) Get(w http.ResponseWriter, r *http.Request) {
 	}
 
 	ret.Base = get.Base
-
-	err = json.NewEncoder(w).Encode(ret)
-	if err != nil {
-		w.WriteHeader(http.StatusInternalServerError)
-		EncodeErr(w, fmt.Errorf("encoding json: %w", err))
-
-		return
-	}
+	ret.Ok = true
+	json.NewEncoder(w).Encode(ret)
 }

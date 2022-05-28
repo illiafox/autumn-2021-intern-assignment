@@ -11,7 +11,7 @@ func (app *App) Database() (DeferFunc, bool) {
 
 	db, err := database.New(app.conf.Postgres)
 	if err != nil {
-		app.logger.Error("connecting to database", zap.Error(err))
+		app.logger.Error("Connect to database", zap.Error(err))
 
 		return nil, false
 	}

@@ -9,6 +9,8 @@ import (
 	"github.com/gorilla/mux"
 )
 
+// New godoc
+// @BasePath  /json/
 func New(db model.Repository) http.Handler {
 
 	m := methods.New(db)

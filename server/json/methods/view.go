@@ -10,46 +10,66 @@ import (
 	"autumn-2021-intern-assignment/public"
 )
 
+// View
+// @Description User ID and view options
+type View struct {
+	User   int64  `json:"user_id"`
+	Sort   string `json:"sort"`
+	Limit  int64  `json:"limit"`
+	Offset int64  `json:"offset"`
+}
+
+type ViewOut struct {
+	Ok           bool                `json:"ok"`
+	Transactions []model.Transaction `json:"transactions"`
+}
+
+// View godoc
+// @Summary      View transactions
+// @Description  View user transactions
+// @Accept       json
+// @Produce      json
+// @Param        input body 	View true "User ID and view options"
+// @Success      200  {object}  ViewOut
+// @Failure      400  {object}  Error
+// @Failure      422  {object}  Error
+// @Failure      500  {object}  Error
+// @Router       /view [get]
 func (m Methods) View(w http.ResponseWriter, r *http.Request) {
-	var view = struct {
-		User   int64  `json:"user_id"`
-		Sort   string `json:"sort"`
-		Limit  int64  `json:"limit"`
-		Offset int64  `json:"offset"`
-	}{}
+	var view View
 
 	err := json.NewDecoder(r.Body).Decode(&view)
 	if err != nil {
 		w.WriteHeader(http.StatusBadRequest)
-		EncodeErr(w, fmt.Errorf("decoding json: %w", err))
+		WriteError(w, fmt.Errorf("decoding json: %w", err))
 
 		return
 	}
 
 	if view.User <= 0 {
 		w.WriteHeader(http.StatusBadRequest)
-		EncodeErr(w, fmt.Errorf("wrong 'user' field value: %d", view.User))
+		WriteError(w, fmt.Errorf("wrong 'user' field value: %d", view.User))
 
 		return
 	}
 
 	if view.Limit < 1 {
 		w.WriteHeader(http.StatusBadRequest)
-		EncodeErr(w, fmt.Errorf("wrong 'limit' field value: cant be lower than 1, got %d", view.Limit))
+		WriteError(w, fmt.Errorf("wrong 'limit' field value: cant be lower than 1, got %d", view.Limit))
 
 		return
 	}
 
 	if view.Offset < 0 {
 		w.WriteHeader(http.StatusBadRequest)
-		EncodeErr(w, fmt.Errorf("wrong 'offset' field value: cant be lower than 0 got %d", view.Offset))
+		WriteError(w, fmt.Errorf("wrong 'offset' field value: cant be lower than 0 got %d", view.Offset))
 
 		return
 	}
 
 	if view.Sort == "" {
 		w.WriteHeader(http.StatusBadRequest)
-		EncodeString(w, "'sort' field value cant be empty")
+		WriteString(w, "'sort' field value cant be empty")
 
 		return
 	}
@@ -63,21 +83,10 @@ func (m Methods) View(w http.ResponseWriter, r *http.Request) {
 		} else {
 			w.WriteHeader(http.StatusUnprocessableEntity)
 		}
-		EncodeErr(w, fmt.Errorf("get transfers: %w", err))
+		WriteError(w, fmt.Errorf("get transfers: %w", err))
 
 		return
 	}
 
-	err = json.NewEncoder(w).Encode(struct {
-		Ok           bool                `json:"ok"`
-		Transactions []model.Transaction `json:"transactions"`
-	}{true, trans})
-
-	if err != nil {
-		w.WriteHeader(http.StatusInternalServerError)
-		EncodeErr(w, fmt.Errorf("encoding json: %w", err))
-
-		return
-	}
-
+	json.NewEncoder(w).Encode(ViewOut{true, trans})
 }

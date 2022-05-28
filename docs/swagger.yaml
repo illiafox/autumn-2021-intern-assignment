@@ -1,0 +1,316 @@
+basePath: /api
+definitions:
+  methods.Balance:
+    description: User Balance, Base and its Rate
+    properties:
+      balance:
+        type: string
+      base:
+        type: string
+      ok:
+        type: boolean
+      rate:
+        type: string
+    type: object
+  methods.Change:
+    description: User id, Change Amount and Description
+    properties:
+      change:
+        type: integer
+      description:
+        type: string
+      user_id:
+        type: integer
+    type: object
+  methods.Delete:
+    description: User ID
+    properties:
+      user_id:
+        type: integer
+    type: object
+  methods.Error:
+    description: Api error
+    properties:
+      err:
+        type: string
+      ok:
+        default: false
+        type: boolean
+    type: object
+  methods.Get:
+    description: User ID and currency Base
+    properties:
+      base:
+        type: string
+      user_id:
+        type: integer
+    type: object
+  methods.Switch:
+    description: Old and New User ID
+    properties:
+      new_user_id:
+        type: integer
+      old_user_id:
+        type: integer
+    type: object
+  methods.Transfer:
+    description: To/From User ID,amount and description
+    properties:
+      amount:
+        type: integer
+      description:
+        type: string
+      from_id:
+        type: integer
+      to_id:
+        type: integer
+    type: object
+  methods.View:
+    description: User ID and view options
+    properties:
+      limit:
+        type: integer
+      offset:
+        type: integer
+      sort:
+        type: string
+      user_id:
+        type: integer
+    type: object
+  methods.ViewOut:
+    properties:
+      ok:
+        type: boolean
+      transactions:
+        items:
+          $ref: '#/definitions/model.Transaction'
+        type: array
+    type: object
+  model.Transaction:
+    description: User Transaction
+    properties:
+      action:
+        type: integer
+      balance_id:
+        type: integer
+      date:
+        example: ""
+        type: string
+      description:
+        type: string
+      from_id:
+        type: string
+      transaction_id:
+        type: integer
+    type: object
+host: localhost:8080
+info:
+  contact:
+    email: illiadimura@gmail.com
+    name: API Support
+    url: https://github.com/illiafox
+  description: Test task for the position of trainee golang backend developer
+  license:
+    name: Boost Software License - Version 1.0
+    url: https://opensource.org/licenses/BSL-1.0
+  termsOfService: http://swagger.io/terms/
+  title: Balance API
+  version: "1.0"
+paths:
+  /change:
+    post:
+      consumes:
+      - application/json
+      description: Change User balance
+      parameters:
+      - description: User id, Change Amount and Description
+        in: body
+        name: input
+        required: true
+        schema:
+          $ref: '#/definitions/methods.Change'
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            type: boolean
+        "400":
+          description: Bad Request
+          schema:
+            $ref: '#/definitions/methods.Error'
+        "406":
+          description: Not Acceptable
+          schema:
+            $ref: '#/definitions/methods.Error'
+        "422":
+          description: Unprocessable Entity
+          schema:
+            $ref: '#/definitions/methods.Error'
+        "500":
+          description: Internal Server Error
+          schema:
+            $ref: '#/definitions/methods.Error'
+      summary: Change Balance
+  /delete:
+    delete:
+      consumes:
+      - application/json
+      description: Delete User balance
+      parameters:
+      - description: User ID
+        in: body
+        name: input
+        required: true
+        schema:
+          $ref: '#/definitions/methods.Delete'
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            type: boolean
+        "400":
+          description: Bad Request
+          schema:
+            $ref: '#/definitions/methods.Error'
+        "406":
+          description: Not Acceptable
+          schema:
+            $ref: '#/definitions/methods.Error'
+        "500":
+          description: Internal Server Error
+          schema:
+            $ref: '#/definitions/methods.Error'
+      summary: Delete Balance
+  /get:
+    get:
+      consumes:
+      - application/json
+      description: Get user balance
+      parameters:
+      - description: User id and Currency
+        in: body
+        name: input
+        required: true
+        schema:
+          $ref: '#/definitions/methods.Get'
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/methods.Balance'
+        "400":
+          description: Bad Request
+          schema:
+            $ref: '#/definitions/methods.Error'
+        "406":
+          description: Not Acceptable
+          schema:
+            $ref: '#/definitions/methods.Error'
+        "500":
+          description: Internal Server Error
+          schema:
+            $ref: '#/definitions/methods.Error'
+      summary: Get Balance
+  /switch:
+    put:
+      consumes:
+      - application/json
+      description: Change balance owner
+      parameters:
+      - description: Old and New User ID
+        in: body
+        name: input
+        required: true
+        schema:
+          $ref: '#/definitions/methods.Switch'
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            type: boolean
+        "400":
+          description: Bad Request
+          schema:
+            $ref: '#/definitions/methods.Error'
+        "406":
+          description: Not Acceptable
+          schema:
+            $ref: '#/definitions/methods.Error'
+        "422":
+          description: Unprocessable Entity
+          schema:
+            $ref: '#/definitions/methods.Error'
+      summary: Switch owner
+  /transfer:
+    post:
+      consumes:
+      - application/json
+      description: Transfer money between balances
+      parameters:
+      - description: Transfer
+        in: body
+        name: input
+        required: true
+        schema:
+          $ref: '#/definitions/methods.Transfer'
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            type: boolean
+        "400":
+          description: Bad Request
+          schema:
+            $ref: '#/definitions/methods.Error'
+        "406":
+          description: Not Acceptable
+          schema:
+            $ref: '#/definitions/methods.Error'
+        "422":
+          description: Unprocessable Entity
+          schema:
+            $ref: '#/definitions/methods.Error'
+      summary: Transfer money
+  /view:
+    get:
+      consumes:
+      - application/json
+      description: View user transactions
+      parameters:
+      - description: User ID and view options
+        in: body
+        name: input
+        required: true
+        schema:
+          $ref: '#/definitions/methods.View'
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/methods.ViewOut'
+        "400":
+          description: Bad Request
+          schema:
+            $ref: '#/definitions/methods.Error'
+        "422":
+          description: Unprocessable Entity
+          schema:
+            $ref: '#/definitions/methods.Error'
+        "500":
+          description: Internal Server Error
+          schema:
+            $ref: '#/definitions/methods.Error'
+      summary: View transactions
+swagger: "2.0"
